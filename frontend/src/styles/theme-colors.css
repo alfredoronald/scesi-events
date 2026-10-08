@@ -1,0 +1,83 @@
+
+
+@theme static {
+  /* Red (Rojo SCESI) — color primario de marca                          */
+  --color-scesi-red-light: #f5e9ea;
+  --color-scesi-red-light-hover: #f1dddf;
+  --color-scesi-red-light-active: #e1bcbe;
+
+  --color-scesi-red-normal: #9f1f2c;
+  --color-scesi-red-normal-hover: #8f1c28;
+  --color-scesi-red-normal-active: #7f1923;
+
+  --color-scesi-red-dark: #771721;
+  --color-scesi-red-dark-hover: #5f131a;
+  --color-scesi-red-dark-active: #480e14;
+
+  --color-scesi-red-darker: #380b0f;
+
+  /* Blue (Azul SCESI) — color secundario                                */
+
+  --color-scesi-blue-light: #e8edf3;
+  --color-scesi-blue-light-hover: #dde4ed;
+  --color-scesi-blue-light-active: #b9c8da;
+
+  --color-scesi-blue-normal: #1d4d89;
+  --color-scesi-blue-normal-hover: #1a467c;
+  --color-scesi-blue-normal-active: #173e6e;
+
+  --color-scesi-blue-dark: #163d67;
+  --color-scesi-blue-dark-hover: #112f52;
+  --color-scesi-blue-dark-active: #0d233e;
+
+  --color-scesi-blue-darker: #0a1b30;
+
+  /* Grey (Neutro SCESI) — superficies y texto                           */
+
+  --color-scesi-grey-light: #e8e8e8;
+  --color-scesi-grey-light-hover: #dddddd;
+  --color-scesi-grey-light-active: #b8b8b8;
+
+  --color-scesi-grey-normal: #1a1a1a;
+  --color-scesi-grey-normal-hover: #171717;
+  --color-scesi-grey-normal-active: #151515;
+
+  --color-scesi-grey-dark: #141414;
+  --color-scesi-grey-dark-hover: #101010;
+  --color-scesi-grey-dark-active: #0c0c0c;
+
+  --color-scesi-grey-darker: #090909;
+
+  /* Alias semánticos (primary = rojo, secondary = azul)                 */
+  /* Primary (marca) */
+  --color-primary: var(--color-scesi-red-normal);
+  --color-primary-hover: var(--color-scesi-red-normal-hover);
+  --color-primary-active: var(--color-scesi-red-normal-active);
+  --color-primary-light: var(--color-scesi-red-light);
+  --color-primary-light-hover: var(--color-scesi-red-light-hover);
+  --color-primary-light-active: var(--color-scesi-red-light-active);
+  --color-primary-dark: var(--color-scesi-red-dark);
+  --color-primary-darker: var(--color-scesi-red-darker);
+
+  /* Secondary */
+  --color-secondary: var(--color-scesi-blue-normal);
+  --color-secondary-hover: var(--color-scesi-blue-normal-hover);
+  --color-secondary-active: var(--color-scesi-blue-normal-active);
+  --color-secondary-light: var(--color-scesi-blue-light);
+  --color-secondary-light-hover: var(--color-scesi-blue-light-hover);
+  --color-secondary-light-active: var(--color-scesi-blue-light-active);
+  --color-secondary-dark: var(--color-scesi-blue-dark);
+  --color-secondary-darker: var(--color-scesi-blue-darker);
+
+  /* Superficies y texto */
+  --color-surface: var(--color-scesi-grey-light);
+  --color-surface-hover: var(--color-scesi-grey-light-hover);
+  --color-surface-active: var(--color-scesi-grey-light-active);
+  --color-surface-dark: var(--color-scesi-grey-normal);
+  --color-surface-darker: var(--color-scesi-grey-darker);
+
+  --color-text: var(--color-scesi-grey-normal);
+  --color-text-hover: var(--color-scesi-grey-normal-hover);
+  --color-text-light: var(--color-scesi-grey-light);
+  --color-text-inverse: var(--color-scesi-grey-light);
+}
