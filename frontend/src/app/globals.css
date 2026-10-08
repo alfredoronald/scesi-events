@@ -1,26 +1,52 @@
 @import "tailwindcss";
+@import "./../styles/theme-colors.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--color-scesi-grey-light);
+  --foreground: var(--color-scesi-grey-normal);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Escala tipográfica de marca → utilidades text-display, text-title, ...
+   `static` para que las variables existan en :root aunque ninguna utilidad las use aún. */
+@theme static {
+  --text-display: 3rem;
+  --text-display--line-height: 1.1;
+  --text-title: 2.25rem;
+  --text-title--line-height: 1.2;
+  --text-subtitle: 1.5rem;
+  --text-subtitle--line-height: 1.3;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.5;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  p {
+    line-height: var(--text-body--line-height);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
