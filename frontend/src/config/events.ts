@@ -9,7 +9,7 @@ export type EventRecord = {
   /** Etiqueta del badge: "Organizado por SCESI" / "Comunidad invitada". */
   organizer: string;
   organizerKind: OrganizerKind;
-  /** Ruta bajo /public (servida con next/image). */
+  /** Ruta bajo /public; cadena vacía cuando aún no hay foto del evento. */
   image: string;
   /** ¿Pertenece al semestre en curso? (filtro "Este semestre"). */
   thisSemester: boolean;
@@ -34,7 +34,7 @@ export const events: EventRecord[] = [
     location: "FECO, Cochabamba",
     organizer: "Comunidad invitada",
     organizerKind: "guest",
-    image: "/events/feria-internacional-libro.jpg",
+    image: "/feria-internacional-libro.jpg",
     thisSemester: false,
     recommended: false,
     href: "/dashboard/explorar",
@@ -76,7 +76,7 @@ export const events: EventRecord[] = [
     location: "Laboratorio 3 — FCyT",
     organizer: "Organizado por SCESI",
     organizerKind: "scesi",
-    image: "/events/taller-git.jpg",
+    image: "",
     thisSemester: true,
     recommended: false,
     href: "/dashboard/explorar",

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Calendar, MapPin } from "lucide-react";
+import { ArrowRight, Calendar, GitBranch, MapPin } from "lucide-react";
 import type { EventRecord } from "@/config/events";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
@@ -17,14 +17,22 @@ export function EventCard({ event }: { event: EventRecord }) {
         "sm:flex-row",
       )}
     >
-      <div className="relative aspect-[16/10] w-full sm:aspect-auto sm:w-1/3">
-        <Image
-          src={event.image}
-          alt={`Foto del evento ${event.title}`}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 33vw"
-          className="object-cover"
-        />
+      <div className="relative aspect-[16/10] w-full bg-scesi-grey-normal sm:aspect-auto sm:w-1/3">
+        {event.image ? (
+          <Image
+            src={event.image}
+            alt={`Foto del evento ${event.title}`}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 33vw"
+            className="object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center text-white">
+            <GitBranch className="h-8 w-8" aria-hidden="true" />
+            <span className="text-sm font-semibold">{event.title}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-6 sm:p-8 lg:p-10">
