@@ -1,22 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import { Calendar, Clock, Ticket } from "lucide-react";
+import { events, type EventRecord } from "./events";
 
 export type Participant = {
   name: string;
   initials: string;
   role: string;
-};
-
-export type EventSummary = {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  organizer: string;
-  /** Ruta bajo /public (servida con next/image). */
-  image: string;
-  // TODO: sustituir por /dashboard/eventos/[slug] cuando exista el detalle.
-  href: string;
 };
 
 export type NextEvent = {
@@ -57,26 +46,10 @@ export const nextEvent: NextEvent = {
   ticketHref: "/dashboard/entradas",
 };
 
-export const recommendedEvents: EventSummary[] = [
-  {
-    id: "hackathon-scesi",
-    title: "Hackathon SCESI",
-    date: "28 SEP",
-    location: "FCyT — UMSS",
-    organizer: "Organizado por SCESI",
-    image: "/events/hackathon-scesi.jpg",
-    href: "/dashboard/explorar",
-  },
-  {
-    id: "devtalks-ia-sin-humo",
-    title: "DevTalks: IA sin humo",
-    date: "12 OCT",
-    location: "Auditorio MEMI",
-    organizer: "Organizado por SCESI",
-    image: "/events/devtalks-ia-sin-humo.jpg",
-    href: "/dashboard/explorar",
-  },
-];
+/** Derivado del catálogo único (fuente de verdad en config/events.ts). */
+export const recommendedEvents: EventRecord[] = events.filter(
+  (event) => event.recommended,
+);
 
 export const activityStats: ActivityStat[] = [
   { id: "attended", label: "Eventos asistidos", value: "08", icon: Calendar },

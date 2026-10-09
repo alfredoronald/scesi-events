@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { EventExplorer } from "@/components/events/event-explorer";
+import { events } from "@/config/events";
 
 export const metadata: Metadata = {
   title: "Explorar eventos",
@@ -8,10 +9,15 @@ export const metadata: Metadata = {
 
 export default function ExploreEventsPage() {
   return (
-    <DashboardSection
-      title="Explorar eventos"
-      description="Encuentra talleres, charlas y actividades de la comunidad."
-      emptyMessage="Pronto aparecerán aquí los próximos eventos de SCESI."
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <h1 className="text-title text-scesi-grey-normal md:text-display">
+        Explorar eventos
+      </h1>
+      <p className="mt-3 text-body text-scesi-grey-normal/70">
+        Descubre experiencias, talleres y encuentros de la comunidad.
+      </p>
+
+      <EventExplorer events={events} />
+    </div>
   );
 }
