@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-export type BadgeVariant = "red" | "neutral";
+export type BadgeVariant = "red" | "neutral" | "blue" | "green";
 
 const variants: Record<BadgeVariant, string> = {
   red: "bg-scesi-red-light text-scesi-red-normal",
   neutral: "bg-scesi-grey-light text-scesi-grey-normal",
+  blue: "bg-scesi-blue-light text-scesi-blue-normal",
+  green: "bg-scesi-green-light text-scesi-green-normal",
 };
 
 /** Pill de estado: "Inscripción confirmada", "Organizado por SCESI", etc. */
