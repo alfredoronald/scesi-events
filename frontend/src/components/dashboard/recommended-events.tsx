@@ -35,14 +35,21 @@ export function RecommendedEvents() {
               href={event.href}
               className="group flex items-center gap-4 py-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-scesi-red-normal"
             >
-              <Image
-                src={event.image}
-                alt={`Miniatura del evento ${event.title}`}
-                width={112}
-                height={84}
-                sizes="(max-width: 640px) 40vw, 112px"
-                className="h-[84px] w-28 shrink-0 rounded-lg object-cover"
-              />
+              {event.image ? (
+                <Image
+                  src={event.image}
+                  alt={`Miniatura del evento ${event.title}`}
+                  width={112}
+                  height={84}
+                  sizes="(max-width: 640px) 40vw, 112px"
+                  className="h-[84px] w-28 shrink-0 rounded-lg object-cover"
+                  unoptimized
+                />
+              ) : (
+                <span className="flex h-[84px] w-28 shrink-0 items-center justify-center rounded-lg bg-scesi-grey-normal p-2 text-center text-xs font-semibold text-white">
+                  {event.title}
+                </span>
+              )}
               <span className="min-w-0 flex-1">
                 <Badge>{event.organizer}</Badge>
                 <span className="mt-2 block truncate text-base font-semibold text-scesi-grey-normal">
