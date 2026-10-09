@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { RatingSection } from "@/components/ratings/rating-section";
 
 export const metadata: Metadata = {
   title: "Calificaciones",
-  description: "Comparte tu experiencia y califica los eventos a los que asististe.",
+  description: "Comparte tu experiencia y consulta las valoraciones que enviaste.",
 };
 
 export default function RatingsPage() {
   return (
-    <DashboardSection
-      title="Calificaciones"
-      description="Ayuda a mejorar los eventos compartiendo tu experiencia."
-      emptyMessage="Los eventos que puedes calificar aparecerán aquí."
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <h1 className="text-title text-scesi-grey-normal md:text-display">
+        Calificaciones
+      </h1>
+      <p className="mt-3 text-body text-scesi-grey-normal/70">
+        Comparte tu experiencia y consulta las valoraciones que enviaste.
+      </p>
+      <RatingSection />
+    </div>
   );
 }
