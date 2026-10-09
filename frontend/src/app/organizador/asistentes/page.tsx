@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { AttendeesView } from "@/components/attendees/attendees-view";
 
 export const metadata: Metadata = {
   title: "Asistentes",
@@ -8,12 +8,8 @@ export const metadata: Metadata = {
 
 export default function OrganizerAttendeesPage() {
   return (
-    <DashboardSection
-      title="Asistentes"
-      description="Consulta y gestiona los asistentes de tus eventos."
-      emptyMessage="El listado de asistentes estará disponible próximamente."
-      backHref="/organizador"
-      backLabel="Volver a Mis eventos"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <AttendeesView />
+    </div>
   );
 }
