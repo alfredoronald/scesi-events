@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import { Search, SearchX } from "lucide-react";
 import {
   attendeeStatusLabels,
-  staffAttendees,
+  attendees,
   type AttendeeStatus,
-} from "@/config/staff-attendees";
+} from "@/config/attendees";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { useCheckIns } from "./check-in-provider";
@@ -47,13 +47,13 @@ export function AttendeesView() {
       pending: 0,
       waitlist: 0,
     };
-    for (const attendee of staffAttendees) totals[attendee.status] += 1;
+    for (const attendee of attendees) totals[attendee.status] += 1;
     return totals;
   }, []);
 
   const filtered = useMemo(() => {
     const term = normalize(query.trim());
-    return staffAttendees.filter((attendee) => {
+    return attendees.filter((attendee) => {
       const matchesFilter = filter === "all" || attendee.status === filter;
       const matchesQuery =
         !term ||
@@ -98,7 +98,7 @@ export function AttendeesView() {
             >
               {label}
               {(id === "all" || counts[id] > 0) &&
-                ` · ${id === "all" ? staffAttendees.length : counts[id]}`}
+                ` · ${id === "all" ? attendees.length : counts[id]}`}
             </button>
           ))}
         </div>
