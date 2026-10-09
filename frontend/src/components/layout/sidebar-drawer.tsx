@@ -8,10 +8,16 @@ import { cn } from "@/lib/cn";
 import type { SidebarConfig } from "@/config/navigation";
 import { SidebarFooter } from "./sidebar-footer";
 import { SidebarNavItem } from "./sidebar-nav-item";
+import { SidebarViewSwitcher } from "./sidebar-view-switcher";
 import { useSidebar } from "./sidebar-context";
 
 /** Drawer móvil del sidebar: overlay + panel deslizante (&lt; lg). */
-export function SidebarDrawer({ items, logo, footer }: SidebarConfig) {
+export function SidebarDrawer({
+  items,
+  logo,
+  footer,
+  sectionLabel,
+}: SidebarConfig) {
   const { open, closeDrawer } = useSidebar();
   const pathname = usePathname();
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -29,7 +35,7 @@ export function SidebarDrawer({ items, logo, footer }: SidebarConfig) {
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusableElements = () =>
       drawerRef.current?.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled])',
+        'a[href], button:not([disabled]), select:not([disabled])',
       );
     focusableElements()?.[0]?.focus();
 
@@ -116,12 +122,21 @@ export function SidebarDrawer({ items, logo, footer }: SidebarConfig) {
           aria-label="Navegación principal"
           className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-2"
         >
+          {sectionLabel && (
+            <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-widest text-scesi-grey-light-active">
+              {sectionLabel}
+            </p>
+          )}
           {items.map((item) => (
             <SidebarNavItem key={item.href} item={item} onNavigate={closeDrawer} />
           ))}
         </nav>
 
-        {footer && <SidebarFooter footer={footer} />}
+        {footer && (
+          <SidebarFooter footer={footer}>
+            <SidebarViewSwitcher />
+          </SidebarFooter>
+        )}
       </div>
     </>
   );

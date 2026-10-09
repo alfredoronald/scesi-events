@@ -1,16 +1,20 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export function SidebarFooter({
   footer,
+  children,
   className,
 }: {
   footer: { label: string; href: string };
+  children?: ReactNode;
   className?: string;
 }) {
   return (
     <div className={cn("border-t border-scesi-grey-dark px-3 py-4", className)}>
+      {children}
       <Link
         href={footer.href}
         className={cn(

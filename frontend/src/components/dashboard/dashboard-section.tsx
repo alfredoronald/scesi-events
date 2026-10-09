@@ -5,10 +5,15 @@ export function DashboardSection({
   title,
   description,
   emptyMessage,
+  backHref = "/dashboard",
+  backLabel = "Volver al resumen",
 }: {
   title: string;
   description: string;
   emptyMessage: string;
+  /** Destino del enlace de retorno (por defecto el panel del participante). */
+  backHref?: string;
+  backLabel?: string;
 }) {
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
@@ -22,10 +27,10 @@ export function DashboardSection({
       >
         <p className="text-scesi-grey-normal/70">{emptyMessage}</p>
         <Link
-          href="/dashboard"
+          href={backHref}
           className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-scesi-red-normal outline-none hover:text-scesi-red-normal-hover focus-visible:ring-2 focus-visible:ring-scesi-red-normal"
         >
-          Volver al resumen
+          {backLabel}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </section>
