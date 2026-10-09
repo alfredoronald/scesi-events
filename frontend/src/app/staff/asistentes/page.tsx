@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { AttendeesView } from "@/components/staff/attendees-view";
 
 export const metadata: Metadata = {
   title: "Asistentes",
-  description: "Consulta el listado de asistentes del evento.",
+  description: "Consulta los inscritos, su registro y su ingreso.",
 };
 
 export default function StaffAttendeesPage() {
   return (
-    <DashboardSection
-      title="Asistentes"
-      description="Consulta el listado de asistentes del evento."
-      emptyMessage="El listado de asistentes estará disponible próximamente."
-      backHref="/staff"
-      backLabel="Volver a Mi horario"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <AttendeesView />
+    </div>
   );
 }
