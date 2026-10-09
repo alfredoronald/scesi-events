@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { staffAttendees } from "@/config/staff-attendees";
+import { attendees } from "@/config/attendees";
 
 type CheckInMap = Record<string, string>;
 
@@ -17,18 +17,22 @@ type CheckInContextValue = {
   checkIn: (attendeeId: string, time: string) => void;
 };
 
-const CheckInContext = createContext<CheckInContextValue | null>(null);
-
 /** Semilla desde el mock: solo los asistentes con checkedInAt. */
 const seedCheckIns: CheckInMap = Object.fromEntries(
-  staffAttendees.flatMap((attendee) =>
+  attendees.flatMap((attendee) =>
     attendee.checkedInAt ? [[attendee.id, attendee.checkedInAt] as const] : [],
   ),
 );
 
+/** Valor por defecto: la vista funciona aunque no haya provider (sin mutación). */
+const CheckInContext = createContext<CheckInContextValue>({
+  checkIns: seedCheckIns,
+  checkIn: () => {},
+});
+
 /**
- * Estado compartido de check-in del staff. La vista de Control de acceso
- * llamará `checkIn()` y la columna Ingreso de Asistentes lo reflejará en vivo.
+ * Estado compartido de check-in de la app (raíz). Control de acceso llamará
+ * `checkIn()` y la columna Ingreso de Asistentes lo reflejará en vivo.
  */
 export function CheckInProvider({ children }: { children: ReactNode }) {
   const [checkIns, setCheckIns] = useState<CheckInMap>(seedCheckIns);
@@ -48,9 +52,5 @@ export function CheckInProvider({ children }: { children: ReactNode }) {
 }
 
 export function useCheckIns(): CheckInContextValue {
-  const context = useContext(CheckInContext);
-  if (!context) {
-    throw new Error("useCheckIns debe usarse dentro de CheckInProvider");
-  }
-  return context;
+  return useContext(CheckInContext);
 }

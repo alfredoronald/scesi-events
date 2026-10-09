@@ -173,7 +173,7 @@ const records: Omit<AttendeeRecord, "eventName">[] = [
 ];
 
 /** Listado de asistentes: nombres de evento resueltos desde las fuentes existentes. */
-export const staffAttendees: AttendeeRecord[] = records.map((record) => ({
+export const attendees: AttendeeRecord[] = records.map((record) => ({
   ...record,
   eventName: eventNameFor(record.eventId),
 }));
