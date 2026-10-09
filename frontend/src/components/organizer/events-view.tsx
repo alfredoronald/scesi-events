@@ -1,0 +1,188 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Plus, Search, SearchX } from "lucide-react";
+import {
+  organizerEvents,
+  statusLabels,
+  type OrganizerEventStatus,
+} from "@/config/organizer-events";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
+
+type Filter = "all" | OrganizerEventStatus;
+
+const filters: Array<{ id: Filter; label: string }> = [
+  { id: "all", label: "Todos" },
+  { id: "published", label: "Publicados" },
+  { id: "draft", label: "Borradores" },
+  { id: "finished", label: "Finalizados" },
+];
+
+const statusVariants: Record<OrganizerEventStatus, BadgeVariant> = {
+  published: "green",
+  draft: "neutral",
+  finished: "blue",
+};
+
+const columns = ["Evento", "Fecha", "Inscritos", "Modalidad", "Estado"] as const;
+
+function normalize(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+/** Vista "Mis eventos": pestañas por estado, buscador y tabla de eventos. */
+export function EventsView() {
+  const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
+
+  const counts = useMemo(() => {
+    const totals: Record<OrganizerEventStatus, number> = {
+      published: 0,
+      draft: 0,
+      finished: 0,
+    };
+    for (const event of organizerEvents) totals[event.status] += 1;
+    return totals;
+  }, []);
+
+  const filtered = useMemo(() => {
+    const term = normalize(query.trim());
+    return organizerEvents.filter((event) => {
+      const matchesFilter = filter === "all" || event.status === filter;
+      const matchesQuery = !term || normalize(event.title).includes(term);
+      return matchesFilter && matchesQuery;
+    });
+  }, [filter, query]);
+
+  return (
+    <div>
+      {/* Cabecera */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-title text-scesi-grey-normal md:text-display">
+            Mis eventos
+          </h1>
+          <p className="mt-3 max-w-2xl text-body text-scesi-grey-normal/70">
+            Crea, publica y administra toda la información de tus eventos.
+          </p>
+        </div>
+        <Button href="/organizador/crear-evento" className="shrink-0">
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Crear evento
+        </Button>
+      </div>
+
+      {/* Pestañas + buscador */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Filtrar eventos"
+        >
+          {filters.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setFilter(id)}
+              aria-pressed={filter === id}
+              className={cn(
+                "h-9 rounded-lg px-4 text-sm font-medium transition-colors outline-none",
+                "focus-visible:ring-2 focus-visible:ring-scesi-red-normal focus-visible:ring-offset-2",
+                filter === id
+                  ? "bg-scesi-grey-normal text-white"
+                  : "border border-scesi-grey-light-active bg-white text-scesi-grey-normal/70 hover:bg-scesi-grey-light hover:text-scesi-grey-normal",
+              )}
+            >
+              {label}
+              {(id === "all" || counts[id] > 0) && ` · ${id === "all" ? organizerEvents.length : counts[id]}`}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative w-full sm:w-64">
+          <label htmlFor="event-search" className="sr-only">
+            Buscar evento
+          </label>
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-scesi-grey-normal/50"
+            aria-hidden="true"
+          />
+          <input
+            id="event-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar evento..."
+            className={cn(
+              "h-9 w-full rounded-lg border border-scesi-grey-light-active bg-white",
+              "pl-9 pr-3 text-sm text-scesi-grey-normal outline-none",
+              "placeholder:text-scesi-grey-normal/50",
+              "focus:border-scesi-red-normal focus:ring-2 focus:ring-scesi-red-normal/30",
+            )}
+          />
+        </div>
+      </div>
+
+      {/* Tabla */}
+      {filtered.length > 0 ? (
+        <div className="mt-6 overflow-x-auto rounded-xl border border-scesi-grey-light-active bg-white">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead>
+              <tr className="bg-scesi-grey-light text-xs font-semibold uppercase tracking-wider text-scesi-grey-normal/70">
+                {columns.map((column) => (
+                  <th key={column} className="px-5 py-3">
+                    {column}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-scesi-grey-light-active">
+              {filtered.map((event) => (
+                <tr
+                  key={event.id}
+                  className="transition-colors hover:bg-scesi-grey-light/60"
+                >
+                  <td className="px-5 py-4 font-semibold text-scesi-grey-normal">
+                    {event.title}
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-4 text-scesi-grey-normal/80">
+                    {event.date}
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-4 text-scesi-grey-normal/80">
+                    {event.enrolled} / {event.capacity}
+                  </td>
+                  <td className="px-5 py-4 text-scesi-grey-normal/80">
+                    {event.modality}
+                  </td>
+                  <td className="px-5 py-4">
+                    <Badge variant={statusVariants[event.status]}>
+                      {statusLabels[event.status]}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-scesi-grey-light-active px-6 py-14 text-center">
+          <SearchX
+            className="h-6 w-6 text-scesi-grey-normal/40"
+            aria-hidden="true"
+          />
+          <p className="font-medium text-scesi-grey-normal">
+            No se encontraron eventos
+          </p>
+          <p className="text-sm text-scesi-grey-normal/70">
+            Prueba con otro término o cambia el filtro de estado.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
