@@ -15,7 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SCESI Events | UMSS",
+  title: {
+    default: "SCESI Events | UMSS",
+    template: "%s | SCESI Events",
+  },
   description:
     "Eventos de la Sociedad Científica de Estudiantes de Sistemas (SCESI) de la Universidad Mayor de San Simón.",
 };
