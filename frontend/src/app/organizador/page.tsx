@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { EventsView } from "@/components/organizer/events-view";
 
 export const metadata: Metadata = {
-  title: "Organizador",
-  description: "Gestiona los eventos que organizas desde un solo lugar.",
+  title: "Mis eventos",
+  description: "Crea, publica y administra toda la información de tus eventos.",
 };
 
-export default function OrganizerPage() {
+export default function OrganizerEventsPage() {
   return (
-    <DashboardSection
-      title="Vista Organizador"
-      description="Aquí encontrarás las herramientas para crear y gestionar tus eventos."
-      emptyMessage="La vista de organizador estará disponible próximamente."
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <EventsView />
+    </div>
   );
 }

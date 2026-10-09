@@ -32,6 +32,16 @@
 
   --color-scesi-blue-darker: #0a1b30;
 
+  /* Green (Verde SCESI) — estados de éxito                              */
+
+  --color-scesi-green-light: #e7f3ea;
+  --color-scesi-green-light-hover: #dcece1;
+  --color-scesi-green-light-active: #b9dcc4;
+
+  --color-scesi-green-normal: #1f7a3f;
+  --color-scesi-green-normal-hover: #1b6d38;
+  --color-scesi-green-normal-active: #176031;
+
   /* Grey (Neutro SCESI) — superficies y texto                           */
 
   --color-scesi-grey-light: #e8e8e8;
