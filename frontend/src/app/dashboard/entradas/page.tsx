@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { DashboardSection } from "@/components/dashboard/dashboard-section";
+
+export const metadata: Metadata = {
+  title: "Mis entradas",
+  description: "Consulta las inscripciones y entradas de tus eventos.",
+};
 
 export default function TicketsPage() {
   return (
