@@ -2,12 +2,20 @@
 
 import { usePathname } from "next/navigation";
 import { participant } from "@/config/dashboard";
-import { participantNav } from "@/config/navigation";
+import {
+  adminNav,
+  organizerNav,
+  participantNav,
+  staffNav,
+} from "@/config/navigation";
 import { Avatar } from "@/components/ui/avatar";
+
+/** Todas las vistas, en orden de prioridad (participante primero). */
+const allNavs = [...participantNav, ...organizerNav, ...staffNav, ...adminNav];
 
 /** Deriva el título de la sección desde la ruta + la config de navegación. */
 function titleForPath(pathname: string): string {
-  const item = participantNav.find(({ href, exact }) =>
+  const item = allNavs.find(({ href, exact }) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`),
   );
   return item?.label ?? "Resumen";
