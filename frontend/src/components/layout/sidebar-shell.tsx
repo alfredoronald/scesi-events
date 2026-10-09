@@ -10,6 +10,7 @@ import { SidebarDrawer } from "./sidebar-drawer";
 import { SidebarFooter } from "./sidebar-footer";
 import { SidebarNavItem } from "./sidebar-nav-item";
 import { SidebarProvider, useSidebar } from "./sidebar-context";
+import { Topbar } from "./topbar";
 
 const sidebarConfig = {
   items: participantNav,
@@ -87,7 +88,8 @@ export function SidebarShell({ children }: { children: ReactNode }) {
         <DesktopSidebar />
         <SidebarHeader />
         <SidebarDrawer {...sidebarConfig} />
-        <main className="min-h-[calc(100dvh-4rem)] lg:ml-64 lg:min-h-dvh">
+        <main className="min-h-[calc(100dvh-4rem)] bg-white lg:ml-64 lg:min-h-dvh">
+          <Topbar />
           {children}
         </main>
       </div>
