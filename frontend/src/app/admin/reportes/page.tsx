@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { AdminReportsView } from "@/components/admin/reports-view";
 
 export const metadata: Metadata = {
   title: "Reportes",
-  description: "Genera reportes de asistencia, ventas y métricas.",
+  description: "Genera informes consolidados sobre eventos, participación y comunidad.",
 };
 
 export default function AdminReportsPage() {
   return (
-    <DashboardSection
-      title="Reportes"
-      description="Genera reportes de asistencia, ventas y métricas."
-      emptyMessage="Los reportes estarán disponibles próximamente."
-      backHref="/admin"
-      backLabel="Volver a Resumen"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8 lg:px-10">
+      <AdminReportsView />
+    </div>
   );
 }
