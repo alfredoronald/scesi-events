@@ -11,6 +11,7 @@ import {
 } from "@/config/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { AdminTopbar } from "@/components/admin/admin-topbar";
+import { staffProfile } from "@/config/staff-schedule";
 
 /** Todas las vistas, en orden de prioridad (participante primero). */
 const allNavs = [...participantNav, ...organizerNav, ...staffNav, ...adminNav];
@@ -45,18 +46,21 @@ function TopbarContent() {
     return <AdminTopbar title={title} />;
   }
 
+  const isStaff = pathname === "/staff" || pathname.startsWith("/staff/");
+  const profile = isStaff ? staffProfile : participant;
+
   return (
     <header className="sticky top-16 z-20 flex h-16 items-center justify-between gap-4 border-b border-scesi-grey-dark bg-scesi-grey-normal px-5 sm:px-8 lg:top-0">
       <p className="truncate text-base font-medium text-white sm:text-lg">{title}</p>
 
-      <div className="flex items-center gap-3">
+      <div className={isStaff ? "flex flex-row-reverse items-center gap-3" : "flex items-center gap-3"}>
         <div className="hidden text-right sm:block">
           <p className="text-sm leading-tight font-medium text-white">
-            {participant.name}
+            {profile.name}
           </p>
-          <p className="text-xs text-scesi-grey-light-active">{participant.role}</p>
+          <p className="text-xs text-scesi-grey-light-active">{profile.role}</p>
         </div>
-        <Avatar initials={participant.initials} />
+        <Avatar initials={profile.initials} />
       </div>
     </header>
   );
