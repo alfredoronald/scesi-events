@@ -13,7 +13,6 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -32,8 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     await api<void>("/auth/logout", { method: "POST", body: "{}" }, false);
     setAccessToken(null);
-    setUser(null);
-    router.replace("/");
+    // A full navigation clears session memory and prevents the mounted panel
+    // guard from redirecting to /login while the public page is loading.
+    window.location.replace("/");
   }
   return <AuthContext.Provider value={{ user, loading, authenticate, logout }}>{children}</AuthContext.Provider>;
 }

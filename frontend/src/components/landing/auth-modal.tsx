@@ -11,9 +11,10 @@ type Tab = "login" | "register";
 
 type Props = {
   onClose: () => void;
+  onAuthenticated?: () => void;
 };
 
-export function AuthModal({ onClose }: Props) {
+export function AuthModal({ onClose, onAuthenticated }: Props) {
   const [tab, setTab] = useState<Tab>("login");
   const { authenticate } = useAuth();
   const router = useRouter();
@@ -32,6 +33,7 @@ export function AuthModal({ onClose }: Props) {
       const user = await authenticate(tab === "login" ? "/auth/login" : "/auth/register", tab === "login"
         ? { identifier: email.trim(), password }
         : { nombreCompleto: name.trim(), username: username.trim(), email: email.trim(), password });
+      onAuthenticated?.();
       router.push(roleHome[user.rol]);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo iniciar sesión."); }
     finally { setPending(false); }

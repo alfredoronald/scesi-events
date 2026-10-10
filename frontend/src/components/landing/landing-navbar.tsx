@@ -97,7 +97,7 @@ export function LandingNavbar() {
         )}
       </header>
 
-      {modalOpen && <AuthModal onClose={() => setModalOpen(false)} />}
+      {modalOpen && !user && <AuthModal onClose={() => setModalOpen(false)} onAuthenticated={() => setModalOpen(false)} />}
     </>
   );
 }
