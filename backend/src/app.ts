@@ -8,6 +8,7 @@ import { errorHandler } from "./shared/middlewares/error-handler.js";
 import { notFoundHandler } from "./shared/middlewares/not-found.js";
 import { buildContainer, registrarSuscriptores } from "./container.js";
 import { prisma } from "./shared/database/prisma.js";
+import { buildIntegracionRouter } from "./modules/integracion/integracion.routes.js";
 
 
 export function createApp(): Express {
@@ -33,6 +34,7 @@ export function createApp(): Express {
   registrarSuscriptores(container);
 
   const api = express.Router();
+  api.use(buildIntegracionRouter());
   api.use("/auth", container.modules.auth.router);
   api.use(container.modules.inscripciones.router); // incluye /eventos/:id/inscripciones
   api.use(container.modules.asistencia.router); // incluye /eventos/:id/asistencia

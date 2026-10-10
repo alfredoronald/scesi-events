@@ -63,7 +63,7 @@ export class AsistenciaService {
   }
 
   checkinManual(input: CheckinManualInput, user: AuthUser): Promise<CheckinResultado> {
-    return this.registrar(this.estrategias.manual, input, user);
+    return this.registrar(this.estrategias.manual, input, user, input.puntoControl);
   }
 
   async buscar(eventoId: string, buscar: string, user: AuthUser) {
@@ -75,7 +75,9 @@ export class AsistenciaService {
       nombreCompleto: f.nombreCompleto,
       email: f.email,
       codigo: f.codigo,
-      yaIngreso: f.asistencia !== null,
+      yaIngreso: f.asistencia !== null && !f.asistencia.horaCheckout,
+      checkedInAt: f.asistencia?.horaCheckin.toISOString() ?? null,
+      checkedOutAt: f.asistencia?.horaCheckout?.toISOString() ?? null,
     }));
   }
 
@@ -97,22 +99,35 @@ export class AsistenciaService {
       codigo: r.codigo,
       eventId: r.eventoId,
       estadoPago: r.estadoPago.toLowerCase(),
+      comprobanteUrl: r.comprobanteUrl,
+      createdAt: r.createdAt.toISOString(),
       checkedInAt: r.asistencia?.horaCheckin.toISOString() ?? null,
+      checkedOutAt: r.asistencia?.horaCheckout?.toISOString() ?? null,
+      lastRecord: r.asistencia?.puntoControl ?? null,
       certificadoId: r.certificado?.id ?? null,
     }));
     return { data, total, page, pageSize };
+  }
+
+  async checkout(input: CheckinManualInput, user: AuthUser) {
+    const { inscripcion, evento } = await this.estrategias.manual.resolver(input, user);
+    this.validarEventoEnCurso(evento);
+    const record = await this.repository.registrarSalida(inscripcion.id, user.id, input.puntoControl);
+    if (!record) throw new BusinessRuleError("SIN_INGRESO", "No puedes registrar una salida sin ingreso previo.");
+    return { id: inscripcion.id, horaCheckout: record.horaCheckout?.toISOString() };
   }
 
   private async registrar<TInput>(
     estrategia: CheckinStrategy<TInput>,
     input: TInput,
     user: AuthUser,
+    puntoControl = "Ingreso principal",
   ): Promise<CheckinResultado> {
     const { inscripcion, evento } = await estrategia.resolver(input, user);
     this.validarEventoEnCurso(evento);
     this.validarPagoConfirmado(inscripcion.estadoPago);
 
-    const { creado, horaCheckin } = await this.repository.registrarSiNoExiste(inscripcion.id, user.id);
+    const { creado, horaCheckin } = await this.repository.registrarSiNoExiste(inscripcion.id, user.id, puntoControl);
     const base = {
       ok: true as const,
       inscripcion: { id: inscripcion.id, nombreCompleto: inscripcion.nombreCompleto, codigo: inscripcion.codigo },

@@ -8,6 +8,7 @@ export const checkinQrSchema = z.object({
 export const checkinManualSchema = z.object({
   eventoId: z.string().uuid(),
   inscripcionId: z.string().uuid(),
+  puntoControl: z.string().trim().min(1).max(120).default("Ingreso principal"),
 });
 
 export const buscarParaManualSchema = z.object({
@@ -16,7 +17,7 @@ export const buscarParaManualSchema = z.object({
 });
 
 export const listarAsistenciaQuerySchema = z.object({
-  estado: z.enum(["todos", "dentro", "sin_ingreso"]).default("todos"),
+  estado: z.enum(["todos", "dentro", "salieron", "sin_ingreso"]).default("todos"),
   buscar: z.string().max(160).optional(),
   page: z.coerce.number().int().min(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(200).optional(),

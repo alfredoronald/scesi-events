@@ -87,6 +87,7 @@ export class FeedbackService {
           score: c.general,
           comentario: c.comentario ?? "",
           fecha: c.createdAt.toISOString(),
+          respuesta: c.respuesta,
         })),
     };
   }
