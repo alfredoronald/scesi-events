@@ -50,7 +50,7 @@ export class InscripcionesService {
       async (tx) => {
         // Reserva de cupo con bloqueo pesimista (regla 1 del PRD §12).
         const rows = await tx.$queryRawUnsafe<Array<{ cupo_maximo: number | null }>>(
-          "SELECT cupo_maximo FROM eventos WHERE id = $1 FOR UPDATE",
+          "SELECT cupo_maximo FROM eventos WHERE id = $1::uuid FOR UPDATE",
           evento.id,
         );
         const cupo = rows[0]?.cupo_maximo ?? null;

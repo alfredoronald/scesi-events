@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env.js";
 import { ForbiddenError, UnauthorizedError } from "../errors/index.js";
+import { prisma } from "../database/prisma.js";
 
 export type RolUsuario = "ADMIN" | "ORGANIZADOR" | "STAFF" | "PARTICIPANTE";
 
@@ -16,7 +17,7 @@ declare module "express-serve-static-core" {
   }
 }
 
-export function requireAuth(req: Request, _res: Response, next: NextFunction): void {
+export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const header = req.header("authorization");
   if (!header?.startsWith("Bearer ")) {
     next(new UnauthorizedError());
@@ -29,7 +30,9 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
       next(new UnauthorizedError("Token inválido."));
       return;
     }
-    req.user = { id: payload.sub, rol: payload.rol };
+    const user = await prisma.usuario.findUnique({ where: { id: payload.sub }, select: { id: true, rol: true, activo: true, deletedAt: true } });
+    if (!user?.activo || user.deletedAt) { next(new UnauthorizedError("La cuenta está inactiva o no existe.")); return; }
+    req.user = { id: user.id, rol: user.rol };
     next();
   } catch {
     next(new UnauthorizedError("Token inválido o expirado."));
@@ -37,7 +40,7 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
 }
 
 /** Autenticación opcional: si hay Bearer válido deja el usuario; si no, sigue anónimo. */
-export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const header = req.header("authorization");
   if (!header?.startsWith("Bearer ")) {
     next();
@@ -49,7 +52,8 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
       rol?: RolUsuario;
     };
     if (payload.sub && payload.rol) {
-      req.user = { id: payload.sub, rol: payload.rol };
+      const user = await prisma.usuario.findUnique({ where: { id: payload.sub }, select: { id: true, rol: true, activo: true, deletedAt: true } });
+      if (user?.activo && !user.deletedAt) req.user = { id: user.id, rol: user.rol };
     }
   } catch {
     // Token inválido en ruta pública → se continúa como anónimo.

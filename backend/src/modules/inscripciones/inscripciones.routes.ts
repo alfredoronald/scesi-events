@@ -39,6 +39,7 @@ export function buildInscripcionesRouter(controller: InscripcionesController): R
   router.post(
     "/eventos/:eventoId/inscripciones",
     inscribirLimiter,
+    optionalAuth,
     validate({ params: eventoIdSchema, body: crearInscripcionSchema }),
     (req, res) => controller.inscribir(req, res),
   );
