@@ -10,6 +10,7 @@ import {
   staffNav,
 } from "@/config/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { AdminTopbar } from "@/components/admin/admin-topbar";
 
 /** Todas las vistas, en orden de prioridad (participante primero). */
 const allNavs = [...participantNav, ...organizerNav, ...staffNav, ...adminNav];
@@ -39,6 +40,10 @@ export function Topbar() {
 function TopbarContent() {
   const pathname = usePathname();
   const title = titleForPath(pathname);
+
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return <AdminTopbar title={title} />;
+  }
 
   return (
     <header className="sticky top-16 z-20 flex h-16 items-center justify-between gap-4 border-b border-scesi-grey-dark bg-scesi-grey-normal px-5 sm:px-8 lg:top-0">
