@@ -56,7 +56,6 @@ export const organizerNav: NavItem[] = [
   { label: "Mis eventos", href: "/organizador", icon: Calendar, exact: true },
   { label: "Asistentes", href: "/organizador/asistentes", icon: Users },
   { label: "Actividades", href: "/organizador/actividades", icon: Clock },
-  { label: "Métricas", href: "/organizador/metricas", icon: BarChart3 },
   { label: "Comentarios", href: "/organizador/comentarios", icon: MessageSquare },
 ];
 
