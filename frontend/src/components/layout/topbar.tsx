@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { participant } from "@/config/dashboard";
 import {
@@ -22,6 +23,20 @@ function titleForPath(pathname: string): string {
 }
 
 export function Topbar() {
+  // usePathname se suspende al generar el shell de rutas con params dinámicos
+  // (Cache Components): la lectura vive en la hoja y el boundary aquí.
+  return (
+    <Suspense
+      fallback={
+        <header className="sticky top-16 z-20 flex h-16 items-center border-b border-scesi-grey-dark bg-scesi-grey-normal px-5 sm:px-8 lg:top-0" />
+      }
+    >
+      <TopbarContent />
+    </Suspense>
+  );
+}
+
+function TopbarContent() {
   const pathname = usePathname();
   const title = titleForPath(pathname);
 

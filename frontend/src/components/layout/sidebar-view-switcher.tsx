@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { availableViews } from "@/config/navigation";
@@ -7,6 +8,25 @@ import { cn } from "@/lib/cn";
 
 /** Switcher de vista por rol (Participante / Organizador / Staff / Administrador). */
 export function SidebarViewSwitcher() {
+  // usePathname se suspende en shells de rutas con params dinámicos;
+  // el fallback conserva el alto del control.
+  return (
+    <Suspense
+      fallback={
+        <div className="mb-4">
+          <span className="block px-3 pb-2 text-xs font-semibold uppercase tracking-widest text-scesi-grey-light-active">
+            Cambiar vista
+          </span>
+          <div className="h-11 w-full rounded-lg border border-scesi-grey-dark bg-scesi-grey-dark" />
+        </div>
+      }
+    >
+      <SwitcherContent />
+    </Suspense>
+  );
+}
+
+function SwitcherContent() {
   const router = useRouter();
   const pathname = usePathname();
 
