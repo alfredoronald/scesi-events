@@ -3,12 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter frontend dev",
-    "dev:backend": "pnpm --filter backend dev",
+    "dev:backend": "pnpm --filter scesi-events-backend dev",
     "build": "pnpm --filter frontend build",
-    "build:backend": "pnpm --filter backend build",
+    "build:backend": "pnpm --filter scesi-events-backend build",
     "start": "pnpm --filter frontend start",
     "lint": "pnpm --filter frontend lint",
-    "db:migrate": "pnpm --filter backend db:migrate",
-    "db:seed": "pnpm --filter backend db:seed"
+    "db:migrate": "pnpm --filter scesi-events-backend db:migrate",
+    "db:seed": "pnpm --filter scesi-events-backend db:seed"
   }
 }
