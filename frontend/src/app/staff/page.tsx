@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { StaffScheduleView } from "@/components/staff/schedule-view";
 
 export const metadata: Metadata = {
-  title: "Staff",
-  description: "Consulta tus asignaciones y tareas del evento.",
+  title: "Mi horario",
+  description: "Consulta tus turnos, espacios y responsabilidades asignadas.",
 };
 
 export default function StaffPage() {
   return (
-    <DashboardSection
-      title="Vista Staff"
-      description="Aquí verás tus asignaciones, horarios y tareas como parte del staff."
-      emptyMessage="La vista de staff estará disponible próximamente."
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <StaffScheduleView />
+    </div>
   );
 }
