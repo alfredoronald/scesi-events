@@ -42,6 +42,10 @@
   --color-scesi-green-normal-hover: #1b6d38;
   --color-scesi-green-normal-active: #176031;
 
+  /* Amber (Ámbar SCESI) — turnos pendientes                             */
+  --color-scesi-amber-light: #f3ecdf;
+  --color-scesi-amber-normal: #806034;
+
   /* Grey (Neutro SCESI) — superficies y texto                           */
 
   --color-scesi-grey-light: #e8e8e8;
