@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { StaffAccessControlView } from "@/components/staff/access-control-view";
 
 export const metadata: Metadata = {
   title: "Control de acceso",
-  description: "Registra la entrada y salida de los asistentes.",
+  description: "Valida entradas y registra ingresos o salidas del evento.",
 };
 
 export default function StaffAccessControlPage() {
   return (
-    <DashboardSection
-      title="Control de acceso"
-      description="Registra la entrada y salida de los asistentes."
-      emptyMessage="El control de acceso estará disponible próximamente."
-      backHref="/staff"
-      backLabel="Volver a Mi horario"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <StaffAccessControlView />
+    </div>
   );
 }
