@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { TicketExplorer } from "@/components/tickets/ticket-explorer";
-import { tickets } from "@/config/tickets";
+import { LiveTicketExplorer } from "@/components/tickets/live-ticket-explorer";
 
 export const metadata: Metadata = {
   title: "Mis entradas",
@@ -17,7 +16,7 @@ export default function TicketsPage() {
         Consulta tus inscripciones y códigos de ingreso.
       </p>
 
-      <TicketExplorer tickets={tickets} />
+      <LiveTicketExplorer />
     </div>
   );
 }

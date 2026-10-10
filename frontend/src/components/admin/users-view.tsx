@@ -1,14 +1,22 @@
+"use client";
 import { BarChart3, Calendar, Check, Plus, Users } from "lucide-react";
 import {
-  adminUserAssignments,
-  adminUserCounts,
   adminUserRoleLabels,
-  adminUsers,
-  participantPercentage,
 } from "@/config/admin-users";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useResource, ResourceStatus } from "@/components/auth/use-resource";
+import { type User } from "@/lib/api";
+import { formatDate } from "@/lib/backend-types";
 
+export function AdminUsersView() {
+  const resource = useResource<(User & { ultimoAcceso: string | null })[]>("/usuarios", [], true);
+  const counts = useResource<Record<string, { total: number }>>("/usuarios/conteos", {});
+  const adminUserCounts = { participant: counts.data.PARTICIPANTE?.total ?? 0, organizer: counts.data.ORGANIZADOR?.total ?? 0, staff: counts.data.STAFF?.total ?? 0, admin: counts.data.ADMIN?.total ?? 0 };
+  const total = Object.values(adminUserCounts).reduce((sum, count) => sum + count, 0);
+  const participantPercentage = total ? (adminUserCounts.participant / total * 100).toFixed(1) : "0";
+  const roles = { ADMIN: "admin", ORGANIZADOR: "organizer", STAFF: "staff", PARTICIPANTE: "participant" } as const;
+  const adminUsers = resource.data.map((user) => ({ id: user.id, name: user.nombreCompleto, email: user.email, role: roles[user.rol], lastAccess: user.ultimoAcceso ? formatDate(user.ultimoAcceso) : "Sin acceso", active: user.activo }));
 const cards = [
   {
     label: "Participantes",
@@ -19,13 +27,13 @@ const cards = [
   {
     label: "Organizadores",
     value: String(adminUserCounts.organizer),
-    note: `${adminUserAssignments.activeTeams} equipos activos`,
+    note: "Gestión de eventos",
     icon: Calendar,
   },
   {
     label: "Staff",
     value: String(adminUserCounts.staff),
-    note: `Asignados a ${adminUserAssignments.staffedEvents} eventos`,
+    note: "Control de acceso",
     icon: Check,
   },
   {
@@ -36,10 +44,9 @@ const cards = [
   },
 ];
 
-/** Vista de supervisión de usuarios; todos sus datos se renderizan en servidor. */
-export function AdminUsersView() {
   return (
     <div>
+      <ResourceStatus {...resource} /><ResourceStatus {...counts} />
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-scesi-red-normal">
@@ -89,8 +96,8 @@ export function AdminUsersView() {
                 <td className="px-4 py-5">{adminUserRoleLabels[user.role]}</td>
                 <td className="whitespace-nowrap px-4 py-5">{user.lastAccess}</td>
                 <td className="px-4 py-5">
-                  <Badge variant={user.status === "active" ? "green" : "neutral"} className="rounded-md px-2 py-1.5 font-normal normal-case tracking-normal">
-                    {user.status === "active" ? "Activo" : "Inactivo"}
+                  <Badge variant={user.active ? "green" : "neutral"} className="rounded-md px-2 py-1.5 font-normal normal-case tracking-normal">
+                    {user.active ? "Activo" : "Inactivo"}
                   </Badge>
                 </td>
               </tr>

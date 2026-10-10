@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { randomUUID } from "node:crypto";
 import jwt from "jsonwebtoken";
 import type { Usuario } from "@prisma/client";
 import { env } from "../../config/env.js";
@@ -107,6 +108,7 @@ export class AuthService {
       expiresIn: ttlSegundos(env.jwt.accessTtl),
     });
     const refreshToken = jwt.sign({ sub: usuario.id, typ: "refresh" }, env.jwt.refreshSecret, {
+      jwtid: randomUUID(),
       expiresIn: ttlSegundos(env.jwt.refreshTtl),
     });
     // Solo se persiste el hash del refresh token (PRD §10).

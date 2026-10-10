@@ -1,9 +1,12 @@
 import type { Request, Response } from "express";
 import { created, ok, pageMeta } from "../../shared/http/responses.js";
 import type { AsistenciaService } from "./asistencia.service.js";
-import type { ListarAsistenciaQuery } from "./asistencia.schemas.js";
+import type { CheckinManualInput, ListarAsistenciaQuery } from "./asistencia.schemas.js";
 
 export class AsistenciaController {
+  async checkout(req: Request, res: Response): Promise<void> {
+    ok(res, await this.service.checkout(req.validated.body as CheckinManualInput, req.user!));
+  }
   constructor(private readonly service: AsistenciaService) {}
 
   async checkinQr(req: Request, res: Response): Promise<void> {

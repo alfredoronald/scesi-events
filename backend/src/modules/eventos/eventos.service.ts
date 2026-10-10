@@ -44,6 +44,7 @@ export class EventosService {
     if ((soloPropios || soloAsignados) && !user) {
       throw new ForbiddenError("Necesitas sesión para ver tus eventos.");
     }
+    if (soloPropios && user?.rol !== "ADMIN" && user?.rol !== "ORGANIZADOR") throw new ForbiddenError("Solo organizadores y administradores pueden consultar eventos propios.");
 
     const veTodo = user?.rol === "ADMIN";
     const filtros = {

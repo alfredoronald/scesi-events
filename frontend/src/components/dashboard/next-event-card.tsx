@@ -1,9 +1,8 @@
 import { Calendar, MapPin, Ticket } from "lucide-react";
-import { nextEvent } from "@/config/dashboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export function NextEventCard() {
+export function NextEventCard({ nextEvent }: { nextEvent: { confirmed: boolean; title: string; date: string; time: string; location: string; ticketHref: string; daysLeft: number } }) {
   return (
     <section
       aria-labelledby="next-event-title"

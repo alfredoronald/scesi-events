@@ -9,6 +9,8 @@ export const ticketStatusLabels: Record<TicketStatus, string> = {
 };
 
 export type TicketRecord = {
+  paymentPending?: boolean;
+  attended?: boolean;
   id: string;
   /** Referencia al catálogo compartido (conexión con la vista Explorar). */
   eventId?: string;

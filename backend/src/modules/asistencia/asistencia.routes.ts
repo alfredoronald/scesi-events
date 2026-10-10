@@ -12,6 +12,7 @@ const checkinLimiter = apiRateLimit({ windowMs: 60 * 1000, max: 60, message: "De
 
 export function buildAsistenciaRouter(controller: AsistenciaController): Router {
   const router = Router();
+  router.post("/asistencia/checkout", requireAuth, requireRole("ADMIN", "ORGANIZADOR", "STAFF"), validate({ body: checkinManualSchema }), (req, res) => controller.checkout(req, res));
 
   router.post(
     "/asistencia/checkin",

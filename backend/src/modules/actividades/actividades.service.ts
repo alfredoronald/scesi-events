@@ -12,9 +12,9 @@ export class ActividadesService {
     private readonly eventosPolicies: EventosPolicies,
   ) {}
 
-  async listarPorEvento(eventoIdOrSlug: string): Promise<ActividadDto[]> {
+  async listarPorEvento(eventoIdOrSlug: string, user?: AuthUser): Promise<ActividadDto[]> {
     const evento = await this.eventosService.find(eventoIdOrSlug);
-    if (evento.estado === "BORRADOR") throw new NotFoundError("Evento");
+    if (evento.estado === "BORRADOR" && !this.eventosPolicies.esOrganizadorOLectura(user, evento)) throw new NotFoundError("Evento");
     const actividades = await this.repository.listPorEvento(evento.id);
     return actividades.map(this.toDto);
   }

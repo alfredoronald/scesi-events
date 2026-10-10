@@ -1,70 +1,84 @@
 # Backend de SCESI Events
 
-API inicial para la vista pública de eventos. Usa Express, TypeScript y PostgreSQL. Por ahora solo publica eventos; no implementa cuentas, inscripciones ni asistencia.
+API Express 5 + TypeScript + Prisma 6 + PostgreSQL. Las rutas están bajo `/api/v1`; el chequeo de salud está en `/api/health`.
 
-## Estructura
+## Desarrollo local
 
-```text
-backend/
-├── src/
-│   ├── config/env.ts              # Variables de entorno
-│   ├── db/                        # Conexión y comandos de migración/seed
-│   ├── modules/events/            # Rutas, consultas y tipos de eventos
-│   ├── app.ts                     # Configuración HTTP
-│   └── server.ts                  # Arranque del servidor
-├── sql/                           # Esquema y datos de demostración
-├── compose.yaml                   # PostgreSQL local opcional
-└── .env.example
+Desde la raíz:
+
+```powershell
+pnpm install
+Copy-Item backend/.env.example backend/.env
+docker compose -f backend/compose.yaml up -d db
+pnpm --filter scesi-events-backend prisma:generate
+pnpm --filter scesi-events-backend db:deploy
+pnpm db:seed
+pnpm dev:backend
 ```
 
-Esta estructura separa HTTP, acceso a datos y configuración sin crear capas innecesarias para una API pequeña. Al añadir inscripciones o asistencia, cada función puede tener su propio módulo junto a `events`.
+`db:deploy` aplica las migraciones existentes. `db:migrate` crea migraciones durante desarrollo. **`db:seed` recrea los datos de demostración y elimina los datos actuales.** Se debe usar en una base de desarrollo.
 
-## Arranque local
+La API escucha en `http://localhost:4000`. PostgreSQL local usa el puerto `5434`. El frontend usa `http://localhost:3000` y reenvía `/api/v1/*` al backend mediante un rewrite de Next.js. Configura `API_BASE_URL` en el frontend para otro origen; no incluyas `/api/v1` en esa variable.
 
-Desde la raíz del repositorio:
+## Cuentas del seed
 
-1. Instala dependencias con `pnpm install`.
-2. Copia `backend/.env.example` a `backend/.env`. Los valores de ejemplo son **solo para desarrollo local**; no uses esa contraseña en un servidor público.
-3. Inicia PostgreSQL con `docker compose -f backend/compose.yaml up -d db`, o usa tu propia instancia y ajusta `DATABASE_URL`.
-4. Ejecuta `pnpm db:migrate`.
-5. Opcionalmente, ejecuta `pnpm db:seed` para insertar cinco eventos **ficticios** inspirados en el diseño. No ejecutes el seed en producción.
-6. Inicia la API con `pnpm dev:backend`. El frontend puede seguir en `http://localhost:3000`; la API usa `http://localhost:3001`.
+| Rol | Correo | Contraseña local |
+| --- | --- | --- |
+| Administrador | marco@scesi.org | admin1234 |
+| Organizador | elena@scesi.org | demo1234 |
+| Staff | carlos@scesi.org | demo1234 |
+| Participante | andrea@correo.com | demo1234 |
 
-Para comprobarla: `curl http://localhost:3001/api/health` y `curl 'http://localhost:3001/api/events?period=upcoming'`.
+El registro público crea participantes. Los administradores crean las cuentas de otros roles.
 
-## Contrato para frontend
+## Contratos usados por el frontend
 
 | Ruta | Uso |
 | --- | --- |
-| `GET /api/events?period=upcoming` | Eventos publicados que aún no terminaron, ordenados por inicio ascendente. |
-| `GET /api/events?period=past` | Eventos publicados ya terminados, ordenados por fin descendente. |
-| `GET /api/events/:id` | Detalle público de un evento por UUID. |
-| `GET /api/health` | Comprueba que la API puede consultar la base de datos. |
+| `POST /api/v1/auth/login` | `{ identifier, password }`; devuelve access token y usuario. |
+| `POST /api/v1/auth/register` | Nombre, usuario, correo y contraseña. |
+| `POST /api/v1/auth/refresh` | Rota la cookie HttpOnly de sesión. |
+| `POST /api/v1/auth/logout` | Revoca el refresh token y elimina la cookie. |
+| `GET /api/v1/auth/me` | Usuario autenticado. |
+| `GET /api/v1/eventos` | Listado paginado; filtros `periodo`, `mios`, `staff`, `buscar`, `estado`. |
+| `POST /api/v1/eventos` | Crea un borrador. |
+| `PATCH /api/v1/eventos/:id/estado` | Publicación y cambios de estado. |
+| `POST /api/v1/eventos/:id/inscripciones` | Inscripción con consentimiento; vincula al usuario si envía Bearer. |
+| `GET /api/v1/inscripciones/me` | Entradas del usuario actual. |
+| `GET /api/v1/inscripciones/:id/qr` | Código, token y QR PNG como data URL. |
+| `POST /api/v1/inscripciones/:id/comprobante` | PDF binario, máximo 5 MB. |
+| `GET /api/v1/inscripciones/:id/comprobante` | Descarga autorizada del PDF. |
+| `PATCH /api/v1/inscripciones/:id/pago` | Confirmación o rechazo por dueño del evento/admin. |
+| `GET /api/v1/eventos/:id/asistencia` | Inscripciones, ingresos, salidas y último punto de control. |
+| `POST /api/v1/asistencia/checkin-manual` | Ingreso/reingreso con `eventoId`, `inscripcionId`, `puntoControl`. |
+| `POST /api/v1/asistencia/checkout` | Salida con los mismos campos. |
+| `GET /api/v1/asistencia/buscar` | Búsqueda de una entrada confirmada dentro del evento. |
+| `GET /api/v1/eventos/:id/actividades` | Cronograma. |
+| `GET /api/v1/actividades/:id` | Detalle de actividad. |
+| `GET /api/v1/calificaciones/mias` | Valoraciones enviadas. |
+| `GET /api/v1/eventos/:id/calificaciones/resumen` | Promedios, distribución y opiniones. |
+| `PUT /api/v1/calificaciones/:id/respuesta` | Respuesta del organizador/admin. |
+| `GET /api/v1/staff/turnos` | Turnos del staff autenticado. |
+| `POST /api/v1/staff/turnos` | Asignación de un turno por organizador/admin. |
+| `GET /api/v1/usuarios` | Usuarios paginados (admin). |
+| `GET /api/v1/usuarios/conteos` | Totales por rol. |
+| `GET/PUT /api/v1/configuracion` | Información institucional persistida (admin). |
+| `GET /api/v1/metricas/*` | Métricas de la base de datos. |
+| `GET /api/v1/reportes/staff` | Eventos asignados e ingresos registrados por staff. |
 
-El listado acepta `limit` (1–50, predeterminado 12) y `offset` (predeterminado 0). La respuesta tiene esta forma:
+Las respuestas JSON exitosas usan `{ data, meta? }`; los errores usan `{ error: { code, message, details? } }`. Los listados paginados incluyen `meta.totalPages`. Las fechas se transmiten como ISO 8601 y las vistas las muestran en `America/La_Paz`.
 
-```json
-{
-  "data": [
-    {
-      "id": "00000000-0000-0000-0000-000000000000",
-      "slug": "ejemplo",
-      "title": "Título",
-      "summary": "Descripción breve",
-      "startsAt": "2026-11-01T14:00:00.000Z",
-      "endsAt": "2026-11-01T17:00:00.000Z",
-      "location": "SCESI UMSS",
-      "coverImageUrl": null,
-      "participationKind": "organized",
-      "registrationUrl": null
-    }
-  ],
-  "pagination": { "period": "upcoming", "limit": 12, "offset": 0, "total": 1 }
-}
+Los access tokens se envían como `Authorization: Bearer ...` y se mantienen en memoria en el frontend. La cookie de refresh usa la ruta `/api/v1/auth`, HttpOnly, SameSite=Lax y Secure en producción. Los permisos protegidos consultan el rol y estado actuales de la cuenta.
+
+## Verificación
+
+```powershell
+pnpm --filter scesi-events-backend typecheck
+pnpm --filter scesi-events-backend lint
+pnpm build:backend
+pnpm --filter scesi-events-backend test
+pnpm build
+pnpm lint
 ```
 
-Las fechas son UTC en formato ISO 8601; frontend debe mostrarlas en la zona horaria deseada. `participationKind` puede ser `organized`, `invited` o `staff`. `coverImageUrl` y `registrationUrl` son opcionales. Solo los eventos con `status='published'` aparecen en la API; los borradores quedan ocultos.
-
-La portada de Next.js consulta esta API desde el servidor en cada solicitud. Para desarrollo local usa `http://localhost:3001`; en despliegue se configura `API_BASE_URL` con la dirección interna de la API. Si la API no responde, la portada muestra un aviso y no inventa eventos. Las fotografías usadas por la vista son recursos locales obtenidos del Figma del equipo, no imágenes generadas; las fechas del seed son solo de demostración.
-
-El navegador puede consultar la API directamente desde `http://localhost:3000` porque CORS permite ese origen mediante `FRONTEND_ORIGIN`. Como aún no existe un panel de administración, la creación de eventos se hará temporalmente en PostgreSQL; el endpoint de creación se acordará en una fase posterior.
+Las pruebas de integración requieren PostgreSQL configurado y migrado. Crean sus propios usuarios/eventos con identificadores únicos y los eliminan al finalizar; no usan el seed para las aserciones.

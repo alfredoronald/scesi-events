@@ -3,14 +3,15 @@
 import { useMemo, useState } from "react";
 import { Check, Clock, MapPin, Search, SearchX, Users } from "lucide-react";
 import {
-  attendees,
-  attendeesCapacity,
   type AttendeeRecord,
   type AttendeeStatus,
 } from "@/config/attendees";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { useCheckIns } from "./check-in-provider";
+import { useAttendance } from "./use-attendance";
+import { ResourceStatus } from "@/components/auth/use-resource";
+import { formatDate } from "@/lib/backend-types";
+import { PaymentControl } from "./payment-control";
 
 type Filter = "all" | AttendeeStatus;
 
@@ -54,7 +55,9 @@ function presentationOf(
 export function AttendeesView() {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
-  const { checkIns, checkOuts } = useCheckIns();
+  const { events, eventId, setEventId, resource, roster, checkIns, checkOuts } = useAttendance();
+  const selectedEvent = events.data.find((event) => event.id === eventId);
+  const attendees: AttendeeRecord[] = roster.map((row) => ({ id: row.id, name: row.nombreCompleto, email: row.email, code: row.codigo, eventId, eventName: selectedEvent?.titulo ?? "", registeredAt: formatDate(row.createdAt), checkedInAt: row.checkedInAt, checkedOutAt: row.checkedOutAt, status: row.estadoPago === "no_aplica" || row.estadoPago === "confirmado" ? "confirmed" : "pending" }));
 
   const summary = useMemo(() => {
     const total = attendees.length;
@@ -63,7 +66,7 @@ export function AttendeesView() {
     const outs = attendees.filter((a) => checkOuts[a.id]).length;
     // "En el evento": confirmados que aún no registran salida.
     const inEvent = attendees.filter(
-      (a) => a.status === "confirmed" && !checkOuts[a.id],
+      (a) => Boolean(checkIns[a.id]) && !checkOuts[a.id],
     ).length;
 
     return {
@@ -73,9 +76,9 @@ export function AttendeesView() {
       outs,
       inEvent,
       rate: total > 0 ? Math.round((confirmed / total) * 100) : 0,
-      capacity: attendeesCapacity(),
+      capacity: selectedEvent?.cupoMaximo ?? "sin límite",
     };
-  }, [checkOuts]);
+  }, [attendees, checkIns, checkOuts, selectedEvent]);
 
   const filtered = useMemo(() => {
     const term = normalize(query.trim());
@@ -88,7 +91,7 @@ export function AttendeesView() {
         normalize(attendee.code).includes(term);
       return matchesFilter && matchesQuery;
     });
-  }, [filter, query]);
+  }, [filter, query, attendees]);
 
   const cards = [
     {
@@ -120,6 +123,9 @@ export function AttendeesView() {
 
   return (
     <div>
+      <ResourceStatus {...events} /><ResourceStatus {...resource} />
+      <label htmlFor="organizer-attendees-event" className="sr-only">Evento</label>
+      <select id="organizer-attendees-event" value={eventId} onChange={(event) => setEventId(event.target.value)} className="mb-5 w-full rounded-lg border p-3">{events.data.map((event) => <option key={event.id} value={event.id}>{event.titulo}</option>)}</select>
       {/* Cabecera */}
       <div className="max-w-2xl">
         <h1 className="text-title text-scesi-grey-normal md:text-display">
@@ -262,6 +268,7 @@ export function AttendeesView() {
                       >
                         {presentation.label}
                       </Badge>
+                      {attendee.status === "pending" && <PaymentControl id={attendee.id} hasReceipt={Boolean(roster.find((row) => row.id === attendee.id)?.comprobanteUrl)} onSaved={resource.reload} />}
                     </td>
                   </tr>
                 );

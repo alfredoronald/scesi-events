@@ -1,8 +1,7 @@
 /**
  * Carga de eventos para la landing pública.
  *
- * Intenta leer de la API del backend y, si el backend no está corriendo
- * (o devuelve la lista vacía), cae en los datos mock de config/landing.ts.
+ * Lee los eventos reales de la API; las imágenes locales se usan como respaldo.
  */
 import { getEvents, type PublicEvent } from "@/lib/events";
 import {
@@ -66,7 +65,7 @@ function resolveImage(event: PublicEvent, fallbacks: LandingEvent[]): string {
   const match = fallbacks.find(
     (candidate) => normalize(candidate.title) === normalize(event.title),
   );
-  return match?.image ?? fallbacks[0]?.image ?? "/landing/hero-mascot.png";
+  return match?.image ?? fallbacks[0]?.image ?? "/landing/hero-slide-1.jpg";
 }
 
 function fromApi(
@@ -101,12 +100,12 @@ export async function loadLandingEvents(): Promise<{
       ? upcomingResult.value.map((event) =>
           fromApi(event, "upcoming", upcomingEvents),
         )
-      : upcomingEvents;
+       : [];
 
   const past =
     pastResult.status === "fulfilled" && pastResult.value.length > 0
       ? pastResult.value.map((event) => fromApi(event, "past", pastEvents))
-      : pastEvents;
+       : [];
 
   return { upcoming, past };
 }

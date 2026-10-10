@@ -1,9 +1,11 @@
+"use client";
 import { Search } from "lucide-react";
-import { participant } from "@/config/dashboard";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 
 export function DashboardHeader() {
-  const firstName = participant.name.split(" ")[0];
+  const { user } = useAuth();
+  const firstName = user?.nombreCompleto.split(" ")[0] ?? "";
 
   return (
     <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">

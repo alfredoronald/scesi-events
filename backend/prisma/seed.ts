@@ -1,4 +1,5 @@
 
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
@@ -188,6 +189,10 @@ async function main(): Promise<void> {
   ] });
 
   console.log("Creando actividades del hackathon…");
+  await prisma.turnoStaff.createMany({ data: [
+    { eventoId: hackathon.id, usuarioId: staff1.id, titulo: "Registro y acreditación", lugar: hackathon.lugar, inicio: hackathon.fechaInicio, fin: new Date(hackathon.fechaInicio.getTime() + 2 * 3600000) },
+    { eventoId: hackathon.id, usuarioId: staff1.id, titulo: "Control de acceso", lugar: hackathon.lugar, inicio: new Date(hackathon.fechaInicio.getTime() + 3 * 3600000), fin: new Date(hackathon.fechaInicio.getTime() + 5 * 3600000) },
+  ] });
   const charlaIa = await prisma.actividad.create({ data: {
     eventoId: hackathon.id, titulo: "IA aplicada: de la idea al prototipo",
     descripcion: "Cómo pasar de una idea a un prototipo funcional con IA.",

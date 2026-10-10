@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth, requireRole } from "../../shared/middlewares/auth.js";
+import { optionalAuth, requireAuth, requireRole } from "../../shared/middlewares/auth.js";
 import { validate } from "../../shared/middlewares/validate.js";
 import type { ActividadesController } from "./actividades.controller.js";
 import { actualizarActividadSchema, crearActividadSchema, crearParticipacionSchema } from "./actividades.schemas.js";
@@ -11,7 +11,7 @@ const idSchema = z.object({ id: z.string().uuid() });
 export function buildActividadesRouter(controller: ActividadesController): Router {
   const router = Router();
 
-  router.get("/eventos/:eventoId/actividades", validate({ params: eventoIdSchema }), (req, res) =>
+  router.get("/eventos/:eventoId/actividades", optionalAuth, validate({ params: eventoIdSchema }), (req, res) =>
     controller.listarPorEvento(req, res),
   );
   router.post(

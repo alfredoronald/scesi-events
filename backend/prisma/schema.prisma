@@ -161,6 +161,7 @@ model Evento {
 }
 
 model EventoStaff {
+  turnos TurnoStaff[]
   eventoId  String  @map("evento_id") @db.Uuid
   usuarioId String  @map("usuario_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
@@ -235,6 +236,9 @@ model Asistencia {
   id              String   @id @default(uuid()) @db.Uuid
   inscripcionId   String   @unique @map("inscripcion_id") @db.Uuid
   horaCheckin     DateTime @default(now()) @map("hora_checkin")
+  horaCheckout    DateTime? @map("hora_checkout")
+  puntoControl    String? @map("punto_control") @db.VarChar(120)
+  movimientos     MovimientoAsistencia[]
   registradoPorId String   @map("registrado_por_id") @db.Uuid
   inscripcion     Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
   registradoPor   Usuario  @relation("AsistenciaRegistradaPor", fields: [registradoPorId], references: [id])
@@ -242,6 +246,31 @@ model Asistencia {
   @@index([horaCheckin])
   @@index([registradoPorId])
   @@map("asistencias")
+}
+
+model TurnoStaff {
+  id String @id @default(uuid()) @db.Uuid
+  eventoId String @map("evento_id") @db.Uuid
+  usuarioId String @map("usuario_id") @db.Uuid
+  titulo String @db.VarChar(160)
+  lugar String @db.VarChar(200)
+  inicio DateTime
+  fin DateTime
+  asignacion EventoStaff @relation(fields: [eventoId, usuarioId], references: [eventoId, usuarioId], onDelete: Cascade)
+  @@index([usuarioId, inicio])
+  @@map("turnos_staff")
+}
+
+model MovimientoAsistencia {
+  id String @id @default(uuid()) @db.Uuid
+  asistenciaId String @map("asistencia_id") @db.Uuid
+  tipo String @db.VarChar(10)
+  fecha DateTime @default(now())
+  puntoControl String @map("punto_control") @db.VarChar(120)
+  registradoPorId String @map("registrado_por_id") @db.Uuid
+  asistencia Asistencia @relation(fields: [asistenciaId], references: [id], onDelete: Cascade)
+  @@index([asistenciaId, fecha])
+  @@map("movimientos_asistencia")
 }
 
 model Participacion {
@@ -261,6 +290,7 @@ model Participacion {
 // ─── Feedback ────────────────────────────────────────────────────────────────
 
 model CalificacionEvento {
+  respuesta String? @db.VarChar(2000)
   id           String   @id @default(uuid()) @db.Uuid
   inscripcionId String  @unique @map("inscripcion_id") @db.Uuid
   organizacion Int      // 1–5
@@ -272,6 +302,15 @@ model CalificacionEvento {
   inscripcion  Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
 
   @@map("calificaciones_evento")
+}
+
+model ConfiguracionOrganizacion {
+  id Int @id @default(1)
+  name String @db.VarChar(160)
+  email String @db.VarChar(255)
+  location String @db.VarChar(200)
+  description String
+  @@map("configuracion_organizacion")
 }
 
 model CalificacionActividad {

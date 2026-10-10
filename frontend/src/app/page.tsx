@@ -1,11 +1,7 @@
 /**
  * Página de bienvenida pública — SCESI Events.
  *
- * Esta es la página raíz ("/"). Es un Server Component: intenta cargar los
- * eventos desde la API (con fallback a los datos mock de config/landing.ts
- * si el backend no está disponible) y pasa props a los componentes cliente.
- *
- * No se toca nada de /dashboard, /organizador, /staff ni /admin.
+ * Server Component que carga los eventos y proyectos publicados de la API.
  */
 import { LandingNavbar } from "@/components/landing/landing-navbar";
 import { HeroSection } from "@/components/landing/hero-section";
@@ -15,13 +11,13 @@ import { CtaBanner } from "@/components/landing/cta-banner";
 import { ProjectsSection } from "@/components/landing/projects-section";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { loadLandingEvents } from "@/lib/landing-events";
-import { projects } from "@/config/landing";
+import { loadLandingProjects } from "@/lib/landing-projects";
 
 // La portada depende de la API en cada solicitud; no se prerenderiza en build.
 export const instant = false;
 
 export default async function LandingPage() {
-  const { upcoming, past } = await loadLandingEvents();
+  const [{ upcoming, past }, projects] = await Promise.all([loadLandingEvents(), loadLandingProjects()]);
 
   return (
     <div className="flex flex-col min-h-dvh bg-white">
@@ -31,10 +27,10 @@ export default async function LandingPage() {
       {/* Hero: logo SCESI + descripción + CTA + mascota */}
       <HeroSection />
 
-      {/* Próximos eventos (API con fallback a config/landing.ts) */}
+      {/* Próximos eventos */}
       <UpcomingEventsSection events={upcoming} />
 
-      {/* Eventos pasados (API con fallback a config/landing.ts) */}
+      {/* Eventos pasados */}
       <PastEventsSection events={past} />
 
       {/* CTA rojo "Reserva tu lugar." */}

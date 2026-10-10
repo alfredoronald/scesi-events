@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { EventExplorer } from "@/components/events/event-explorer";
-import { events } from "@/config/events";
+import { LiveEventExplorer } from "@/components/events/live-event-explorer";
 
 export const metadata: Metadata = {
   title: "Explorar eventos",
@@ -17,7 +16,7 @@ export default function ExploreEventsPage() {
         Descubre experiencias, talleres y encuentros de la comunidad.
       </p>
 
-      <EventExplorer events={events} />
+      <LiveEventExplorer />
     </div>
   );
 }

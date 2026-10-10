@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
-import { CheckInProvider } from "@/components/attendees/check-in-provider";
+import { AuthProvider } from "@/components/auth/auth-provider";
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${poppins.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <CheckInProvider>{children}</CheckInProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

@@ -2,50 +2,52 @@
 
 import { useState, type FormEvent } from "react";
 import { Ticket } from "lucide-react";
-import { accessEvents, validateAccessCode, type AccessEntry } from "@/config/staff-access";
-import { useCheckIns } from "@/components/attendees/check-in-provider";
+import { useAttendance } from "@/components/attendees/use-attendance";
+import { ResourceStatus } from "@/components/auth/use-resource";
+import { api } from "@/lib/api";
+type AccessEntry = { id: string; name: string; code: string };
 
 export function StaffAccessControlView() {
-  const [eventId, setEventId] = useState(accessEvents[0].id);
+  const { events, eventId, setEventId, resource, checkIns, checkOuts } = useAttendance();
+  const accessEvents = events.data.map((event) => ({ id: event.id, title: event.titulo }));
+  const [pending, setPending] = useState(false);
   const [code, setCode] = useState("");
   const [entry, setEntry] = useState<AccessEntry | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const { checkIns, checkOuts, checkIn, checkOut } = useCheckIns();
   const isPresent = Boolean(entry && checkIns[entry.id] && !checkOuts[entry.id]);
 
-  function validate(event: FormEvent<HTMLFormElement>) {
+  async function validate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
-    const result = validateAccessCode(code, eventId);
-    if (!result.ok) {
-      setEntry(null);
-      setError(result.message);
-      return;
-    }
-    setCode(result.entry.code);
-    setEntry(result.entry);
-    setError("");
+    setEntry(null); setError(""); setPending(true);
+    try {
+      const rows = await api<Array<{ id: string; nombreCompleto: string; codigo: string }>>(`/asistencia/buscar?eventoId=${eventId}&buscar=${encodeURIComponent(code.trim())}`);
+      const found = rows.find((row) => row.codigo.toUpperCase() === code.trim().toUpperCase());
+      if (!found) throw new Error("Entrada no encontrada o pago pendiente para este evento.");
+      await resource.reload();
+      setCode(found.codigo); setEntry({ id: found.id, name: found.nombreCompleto, code: found.codigo });
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo validar la entrada."); }
+    finally { setPending(false); }
   }
 
-  function register() {
+  async function register() {
     if (!entry) return;
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    if (isPresent) {
-      checkOut(entry.id, time);
-      setMessage(`Salida registrada para ${entry.name} a las ${time}.`);
-    } else {
-      checkIn(entry.id, time);
-      setMessage(`Ingreso registrado para ${entry.name} a las ${time}.`);
-    }
+    setPending(true); setError("");
+    try {
+      await api(isPresent ? "/asistencia/checkout" : "/asistencia/checkin-manual", { method: "POST", body: JSON.stringify({ eventoId: eventId, inscripcionId: entry.id, puntoControl: isPresent ? "Salida principal" : "Ingreso principal" }) });
+      setMessage(`${isPresent ? "Salida" : "Ingreso"} registrado para ${entry.name}.`);
+      resource.reload();
     // Obliga a validar otra vez antes de registrar un movimiento nuevo.
     setEntry(null);
     setCode("");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo registrar el movimiento."); }
+    finally { setPending(false); }
   }
 
   return (
     <div>
+      <ResourceStatus {...events} /><ResourceStatus {...resource} />
       <h1 className="text-title text-scesi-grey-normal md:text-display">Control de acceso</h1>
       <p className="mt-2 text-body text-scesi-grey-normal/65">Valida entradas y registra ingresos o salidas del evento.</p>
       <label htmlFor="access-event" className="sr-only">Evento para control de acceso</label>
@@ -89,11 +91,11 @@ export function StaffAccessControlView() {
                 aria-describedby={error ? "access-error" : "access-demo-help"}
                 className="h-12 min-w-0 flex-1 rounded-lg border border-scesi-grey-light-active/30 bg-scesi-grey-normal px-3 text-sm outline-none placeholder:text-scesi-grey-light-active/60 focus:border-scesi-red-normal focus:ring-2 focus:ring-scesi-red-normal sm:rounded-r-none"
               />
-              <button type="submit" className="h-12 rounded-lg bg-scesi-red-normal px-5 text-xs font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-light sm:rounded-l-none">Validar</button>
+              <button type="submit" disabled={pending || !eventId} className="h-12 rounded-lg bg-scesi-red-normal px-5 text-xs font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-light sm:rounded-l-none">{pending ? "Procesando…" : "Validar"}</button>
             </div>
             {error && <p id="access-error" role="alert" className="mt-3 text-sm text-scesi-red-light-active">{error}</p>}
           </form>
-          <p id="access-demo-help" className="mt-3 text-xs text-scesi-grey-light-active/60">Demo: SC-0311. Los movimientos se conservan durante esta sesión.</p>
+          <p id="access-demo-help" className="mt-3 text-xs text-scesi-grey-light-active/60">Los movimientos se guardan en el evento seleccionado.</p>
 
           {entry && (
             <div className="mt-5 rounded-lg border border-scesi-grey-light-active/30 p-4">
@@ -102,7 +104,7 @@ export function StaffAccessControlView() {
                 <p className="mt-1 text-xs text-scesi-grey-light-active">{entry.code} · Entrada confirmada</p>
                 <p className="mt-2 text-xs text-scesi-grey-light">{isPresent ? `Dentro del evento · ingreso ${checkIns[entry.id]}` : checkOuts[entry.id] ? `Salida registrada a las ${checkOuts[entry.id]}` : "Sin ingreso registrado"}</p>
               </div>
-              <button type="button" onClick={register} className="mt-4 rounded-lg bg-scesi-red-normal px-4 py-3 text-xs font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-light">{isPresent ? "Registrar salida" : "Registrar ingreso"}</button>
+              <button type="button" disabled={pending || resource.loading} onClick={register} className="mt-4 rounded-lg bg-scesi-red-normal px-4 py-3 text-xs font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-light">{isPresent ? "Registrar salida" : "Registrar ingreso"}</button>
             </div>
           )}
           <p role="status" className="mt-3 text-sm text-scesi-green-light">{message}</p>

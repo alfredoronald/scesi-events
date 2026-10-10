@@ -7,7 +7,7 @@ export class ActividadesController {
 
   async listarPorEvento(req: Request, res: Response): Promise<void> {
     const { eventoId } = req.validated.params as { eventoId: string };
-    ok(res, await this.service.listarPorEvento(eventoId));
+    ok(res, await this.service.listarPorEvento(eventoId, req.user));
   }
 
   async crear(req: Request, res: Response): Promise<void> {

@@ -12,7 +12,7 @@ export function buildAuthRouter(controller: AuthController): Router {
   router.post("/login", authLimiter, validate({ body: loginSchema }), (req, res) => controller.login(req, res));
   router.post("/register", authLimiter, validate({ body: registerSchema }), (req, res) => controller.register(req, res));
   router.post("/refresh", validate({ body: refreshSchema }), (req, res) => controller.refresh(req, res));
-  router.post("/logout", requireAuth, (req, res) => controller.logout(req, res));
+  router.post("/logout", (req, res) => controller.logout(req, res));
   router.get("/me", requireAuth, (req, res) => controller.me(req, res));
   return router;
 }
