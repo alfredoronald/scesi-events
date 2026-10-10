@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { CommentsView } from "@/components/organizer/comments-view";
 
 export const metadata: Metadata = {
   title: "Comentarios",
-  description: "Lee y responde los comentarios de los asistentes.",
+  description: "Revisa calificaciones y opiniones para mejorar los próximos eventos.",
 };
 
 export default function OrganizerCommentsPage() {
   return (
-    <DashboardSection
-      title="Comentarios"
-      description="Lee y responde los comentarios de los asistentes."
-      emptyMessage="Los comentarios estarán disponibles próximamente."
-      backHref="/organizador"
-      backLabel="Volver a Mis eventos"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <CommentsView />
+    </div>
   );
 }
