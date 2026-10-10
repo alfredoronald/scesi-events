@@ -8,14 +8,20 @@ import Image from "next/image";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { AuthModal } from "./auth-modal";
+import { useAuth } from "@/components/auth/auth-provider";
+import { roleHome } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { label: "Eventos", href: "#proximos-eventos" },
-  { label: "Tus Tickets", href: "#" },
+  { label: "Tus Tickets", href: "/dashboard/entradas" },
   { label: "Proyectos", href: "#proyectos" },
 ];
 
 export function LandingNavbar() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const openAccount = () => user ? router.push(roleHome[user.rol]) : setModalOpen(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -51,10 +57,10 @@ export function LandingNavbar() {
           {/* CTA */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setModalOpen(true)}
+              onClick={openAccount}
               className="hidden md:inline-flex items-center rounded-lg bg-scesi-red-normal px-5 py-2 text-sm font-semibold text-white hover:bg-scesi-red-normal-hover transition-colors"
             >
-              Iniciar sesión
+              {user ? "Mi panel" : "Iniciar sesión"}
             </button>
 
             {/* Mobile hamburger */}
@@ -82,10 +88,10 @@ export function LandingNavbar() {
               </a>
             ))}
             <button
-              onClick={() => { setMobileOpen(false); setModalOpen(true); }}
+              onClick={() => { setMobileOpen(false); openAccount(); }}
               className="mt-1 w-full rounded-lg bg-scesi-red-normal py-2.5 text-sm font-semibold text-white hover:bg-scesi-red-normal-hover transition-colors"
             >
-              Iniciar sesión
+              {user ? "Mi panel" : "Iniciar sesión"}
             </button>
           </div>
         )}

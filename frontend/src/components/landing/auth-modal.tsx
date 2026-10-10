@@ -3,24 +3,11 @@
 import { useState } from "react";
 import { X, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth/auth-provider";
+import { roleHome } from "@/lib/api";
 
 type Tab = "login" | "register";
-type Role = "participante" | "organizador" | "staff" | "administrador";
-
-const roles: { id: Role; label: string }[] = [
-  { id: "participante", label: "Participante" },
-  { id: "organizador", label: "Organizador" },
-  { id: "staff", label: "Staff" },
-  { id: "administrador", label: "Administrador" },
-];
-
-/** Rutas de destino por rol (mock — no hay auth real). */
-const roleDestinations: Record<Role, string> = {
-  participante: "/dashboard",
-  organizador: "/organizador",
-  staff: "/staff",
-  administrador: "/admin",
-};
 
 type Props = {
   onClose: () => void;
@@ -28,15 +15,26 @@ type Props = {
 
 export function AuthModal({ onClose }: Props) {
   const [tab, setTab] = useState<Tab>("login");
-  const [selectedRole, setSelectedRole] = useState<Role>("participante");
+  const { authenticate } = useAuth();
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
-  /** Navegación mock: redirige según rol seleccionado. */
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    window.location.href = roleDestinations[selectedRole];
+    setError("");
+    setPending(true);
+    try {
+      const user = await authenticate(tab === "login" ? "/auth/login" : "/auth/register", tab === "login"
+        ? { identifier: email.trim(), password }
+        : { nombreCompleto: name.trim(), username: username.trim(), email: email.trim(), password });
+      router.push(roleHome[user.rol]);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo iniciar sesión."); }
+    finally { setPending(false); }
   }
 
   return (
@@ -107,28 +105,8 @@ export function AuthModal({ onClose }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Selector de rol */}
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">
-              Continuar como
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {roles.map(({ id, label }) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setSelectedRole(id)}
-                  className={`rounded-lg border py-2.5 text-sm font-medium transition-all ${
-                    selectedRole === id
-                      ? "border-scesi-red-normal bg-scesi-red-normal text-white"
-                      : "border-gray-300 text-gray-600 hover:border-scesi-red-normal hover:text-scesi-red-normal"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+          {tab === "register" && <div><label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Usuario</label><input id="username" required minLength={3} maxLength={60} pattern="[a-zA-Z0-9_.\-]+" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm" /></div>}
 
           {/* Nombre (solo en registro) */}
           {tab === "register" && (
@@ -141,6 +119,8 @@ export function AuthModal({ onClose }: Props) {
               </label>
               <input
                 id="name"
+                required
+                minLength={3}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -160,7 +140,9 @@ export function AuthModal({ onClose }: Props) {
             </label>
             <input
               id="email"
-              type="email"
+              type={tab === "register" ? "email" : "text"}
+              required
+              autoComplete={tab === "login" ? "username" : "email"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nombre@correo.com"
@@ -178,6 +160,9 @@ export function AuthModal({ onClose }: Props) {
             </label>
             <input
               id="password"
+              required
+              minLength={tab === "register" ? 8 : 1}
+              autoComplete={tab === "register" ? "new-password" : "current-password"}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -189,9 +174,10 @@ export function AuthModal({ onClose }: Props) {
           {/* CTA */}
           <button
             type="submit"
+            disabled={pending}
             className="w-full flex items-center justify-center gap-3 rounded-lg bg-scesi-red-normal py-3.5 text-sm font-semibold text-white hover:bg-scesi-red-normal-hover transition-colors"
           >
-            {tab === "login" ? "Ingresar" : "Crear cuenta"}
+            {pending ? "Procesando…" : tab === "login" ? "Ingresar" : "Crear cuenta"}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

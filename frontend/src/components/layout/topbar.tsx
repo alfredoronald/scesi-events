@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
-import { participant } from "@/config/dashboard";
+import { useAuth } from "@/components/auth/auth-provider";
 import {
   adminNav,
   organizerNav,
@@ -11,7 +11,6 @@ import {
 } from "@/config/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { AdminTopbar } from "@/components/admin/admin-topbar";
-import { staffProfile } from "@/config/staff-schedule";
 
 /** Todas las vistas, en orden de prioridad (participante primero). */
 const allNavs = [...participantNav, ...organizerNav, ...staffNav, ...adminNav];
@@ -39,6 +38,7 @@ export function Topbar() {
 }
 
 function TopbarContent() {
+  const { user } = useAuth();
   const pathname = usePathname();
   const title = titleForPath(pathname);
 
@@ -47,7 +47,7 @@ function TopbarContent() {
   }
 
   const isStaff = pathname === "/staff" || pathname.startsWith("/staff/");
-  const profile = isStaff ? staffProfile : participant;
+  const profile = { name: user?.nombreCompleto ?? "", role: user?.rol ?? "", initials: user?.nombreCompleto.split(" ").slice(0, 2).map((part) => part[0]).join("") ?? "" };
 
   return (
     <header className="sticky top-16 z-20 flex h-16 items-center justify-between gap-4 border-b border-scesi-grey-dark bg-scesi-grey-normal px-5 sm:px-8 lg:top-0">

@@ -16,6 +16,8 @@ import { SidebarNavItem } from "./sidebar-nav-item";
 import { SidebarViewSwitcher } from "./sidebar-view-switcher";
 import { SidebarProvider, useSidebar } from "./sidebar-context";
 import { Topbar } from "./topbar";
+import { RoleGuard } from "@/components/auth/auth-provider";
+import type { User } from "@/lib/api";
 
 function SidebarHeader({ logo }: { logo?: SidebarConfig["logo"] }) {
   const { open, toggle } = useSidebar();
@@ -95,9 +97,10 @@ export function SidebarShell({
   children: ReactNode;
 }) {
   const config = sidebarPresets[preset];
+  const roles: Record<SidebarPresetKey, User["rol"]> = { participant: "PARTICIPANTE", organizador: "ORGANIZADOR", staff: "STAFF", admin: "ADMIN" };
 
   return (
-    <SidebarProvider>
+    <RoleGuard role={roles[preset]}><SidebarProvider>
       <div className="min-h-dvh bg-scesi-grey-light">
         <DesktopSidebar config={config} />
         <SidebarHeader logo={config.logo} />
@@ -107,6 +110,6 @@ export function SidebarShell({
           {children}
         </main>
       </div>
-    </SidebarProvider>
+    </SidebarProvider></RoleGuard>
   );
 }
