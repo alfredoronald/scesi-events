@@ -2,19 +2,26 @@
 
 import { useState, type FormEvent } from "react";
 import {
-  defaultOrganizationSettings,
   settingsSections,
   type OrganizationSettings,
   type SettingsSection,
 } from "@/config/admin-settings";
 import { cn } from "@/lib/cn";
+import { useResource, ResourceStatus } from "@/components/auth/use-resource";
+import { api } from "@/lib/api";
 
 const fieldClassName = "mt-2 block w-full rounded-lg border border-scesi-grey-light-active/50 bg-white px-3 py-3 text-sm text-scesi-grey-normal/75 outline-none focus:border-scesi-red-normal focus:ring-2 focus:ring-scesi-red-normal/20";
 
 export function AdminSettingsView() {
+  const resource = useResource<OrganizationSettings | null>("/configuracion", null);
+  return <><ResourceStatus {...resource} />{resource.data && <SettingsForm initial={resource.data} />}</>;
+}
+
+function SettingsForm({ initial }: { initial: OrganizationSettings }) {
   const [section, setSection] = useState<SettingsSection>("general");
-  const [form, setForm] = useState<OrganizationSettings>(defaultOrganizationSettings);
-  const [saved, setSaved] = useState<OrganizationSettings>(defaultOrganizationSettings);
+  const [form, setForm] = useState<OrganizationSettings>(initial);
+  const [saved, setSaved] = useState<OrganizationSettings>(initial);
+  const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const sectionLabel = settingsSections.find((item) => item.id === section)?.label;
@@ -26,7 +33,7 @@ export function AdminSettingsView() {
     setError("");
   }
 
-  function save(event: FormEvent<HTMLFormElement>) {
+  async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleaned: OrganizationSettings = {
       name: form.name.trim(),
@@ -39,10 +46,15 @@ export function AdminSettingsView() {
       setMessage("");
       return;
     }
-    setForm(cleaned);
-    setSaved(cleaned);
+    setPending(true);
+    try {
+    const result = await api<OrganizationSettings>("/configuracion", { method: "PUT", body: JSON.stringify(cleaned) });
+    setForm(result);
+    setSaved(result);
     setError("");
-    setMessage("Cambios guardados en esta sesión.");
+    setMessage("Cambios guardados.");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo guardar la configuración."); }
+    finally { setPending(false); }
   }
 
   return (
@@ -97,7 +109,7 @@ export function AdminSettingsView() {
                 <div>
                   {error && <p role="alert" className="mb-3 text-sm text-scesi-red-normal">{error}</p>}
                   <div className="flex flex-wrap items-center gap-4">
-                    <button type="submit" className="rounded-lg bg-scesi-red-normal px-5 py-3 text-xs font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-normal">Guardar cambios</button>
+                    <button type="submit" disabled={pending} className="rounded-lg bg-scesi-red-normal px-5 py-3 text-xs font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-normal">{pending ? "Guardando…" : "Guardar cambios"}</button>
                     {hasChanges && <span className="text-xs text-scesi-grey-normal/60">Cambios sin guardar</span>}
                   </div>
                   <p role="status" className="mt-3 text-xs text-scesi-green-normal">{message}</p>

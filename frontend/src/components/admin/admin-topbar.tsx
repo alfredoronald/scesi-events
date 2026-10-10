@@ -3,9 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Bell, Search } from "lucide-react";
-import { adminEvents, normalizeEventSearch } from "@/config/admin-events";
+import { normalizeEventSearch } from "@/config/admin-events";
+import { useResource } from "@/components/auth/use-resource";
+import { useAuth } from "@/components/auth/auth-provider";
+import { formatDate, type ApiEvent } from "@/lib/backend-types";
 
 export function AdminTopbar({ title }: { title: string }) {
+  const { user } = useAuth();
+  const resource = useResource<ApiEvent[]>("/eventos", [], true);
+  const adminEvents = resource.data.map((event) => ({ id: event.id, title: event.titulo, responsible: event.organizador.nombreCompleto, date: formatDate(event.fechaInicio), status: event.estado === "borrador" ? "draft" : event.estado }));
   const [query, setQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unread, setUnread] = useState(true);
@@ -42,8 +48,8 @@ export function AdminTopbar({ title }: { title: string }) {
           </div>}
         </div>
         <div className="flex items-center gap-3">
-          <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-scesi-red-normal text-xs font-semibold text-white">CS</span>
-          <div className="hidden sm:block"><p className="text-xs font-semibold text-white">Coordinación SCESI</p><p className="mt-1 text-[10px] text-scesi-grey-light-active">Administrador</p></div>
+          <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-scesi-red-normal text-xs font-semibold text-white">{user?.nombreCompleto.split(" ").slice(0, 2).map((part) => part[0]).join("")}</span>
+          <div className="hidden sm:block"><p className="text-xs font-semibold text-white">{user?.nombreCompleto}</p><p className="mt-1 text-[10px] text-scesi-grey-light-active">Administrador</p></div>
         </div>
       </div>
     </header>

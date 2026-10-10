@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { adminEvents, adminEventStatusLabels, normalizeEventSearch, type AdminEvent } from "@/config/admin-events";
+import { adminEventStatusLabels, normalizeEventSearch, type AdminEvent } from "@/config/admin-events";
+import { useResource, ResourceStatus } from "@/components/auth/use-resource";
+import { formatDate, type ApiEvent } from "@/lib/backend-types";
+import { EventStatusControl } from "@/components/events/event-status-control";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
@@ -17,6 +20,9 @@ function matchesFilter(event: AdminEvent, filter: Filter) {
 }
 
 export function AdminEventsView() {
+  const resource = useResource<ApiEvent[]>("/eventos", [], true);
+  const statuses = { publicado: "published", en_curso: "ongoing", borrador: "draft", cerrado: "finished" } as const;
+  const adminEvents: AdminEvent[] = resource.data.map((event) => ({ id: event.id, title: event.titulo, responsible: event.organizador.nombreCompleto, date: formatDate(event.fechaInicio), type: event.participacionScesi === "invited" ? "Invitados" : event.participacionScesi === "staff" ? "Staff" : "Organizado", status: statuses[event.estado] }));
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
@@ -28,6 +34,7 @@ export function AdminEventsView() {
 
   return (
     <div>
+      <ResourceStatus {...resource} />
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-scesi-red-normal">Supervisión</p>
@@ -61,7 +68,7 @@ export function AdminEventsView() {
                 <td className="px-4 py-5">{event.responsible}</td>
                 <td className="whitespace-nowrap px-4 py-5">{event.date}</td>
                 <td className="px-4 py-5">{event.type}</td>
-                <td className="px-4 py-5"><Badge variant={event.status === "finished" ? "neutral" : "green"} className="rounded-md px-2 py-1.5 font-normal normal-case tracking-normal">{adminEventStatusLabels[event.status]}</Badge></td>
+                <td className="px-4 py-5"><Badge variant={event.status === "finished" ? "neutral" : "green"} className="rounded-md px-2 py-1.5 font-normal normal-case tracking-normal">{adminEventStatusLabels[event.status]}</Badge><EventStatusControl event={resource.data.find((row) => row.id === event.id)!} onSaved={resource.reload} /></td>
               </tr>
             ))}
             {visible.length === 0 && <tr><td colSpan={5} className="px-4 py-12 text-center text-scesi-grey-normal/65">No se encontraron eventos. Prueba otra búsqueda o cambia el filtro.</td></tr>}
