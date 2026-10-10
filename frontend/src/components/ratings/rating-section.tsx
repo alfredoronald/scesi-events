@@ -5,12 +5,12 @@ import { ChevronDown, Star } from "lucide-react";
 import {
   defaultQuestion,
   eventQuestions,
-  rateableEvents,
-  sentRatings,
-  type SentRating,
 } from "@/config/ratings";
 import { cn } from "@/lib/cn";
 import { StarRating } from "./star-rating";
+import { useResource, ResourceStatus } from "@/components/auth/use-resource";
+import { api } from "@/lib/api";
+import type { ApiInscription } from "@/lib/backend-types";
 
 const cardClass =
   "rounded-xl border border-scesi-grey-light-active bg-white p-6 sm:p-8";
@@ -23,9 +23,14 @@ const fieldClass =
  * enviar, demo sin backend). Client Component con estado local.
  */
 export function RatingSection() {
-  const [pending, setPending] = useState(rateableEvents);
-  const [sent, setSent] = useState<SentRating[]>(sentRatings);
-  const [selectedId, setSelectedId] = useState(rateableEvents[0]?.id ?? "");
+  const inscriptions = useResource<ApiInscription[]>("/inscripciones/me", []);
+  const ratings = useResource<Array<{ id: string; eventoId: string; titulo: string; score: number; comentario: string | null }>>("/calificaciones/mias", []);
+  const sent = ratings.data.map((rating) => ({ id: rating.id, eventTitle: rating.titulo, score: rating.score, comment: rating.comentario ?? "Sin comentarios." }));
+  const pending = inscriptions.data.filter((row) => row.asistencia && !ratings.data.some((rating) => rating.eventoId === row.eventoId)).map((row) => ({ id: row.eventoId, title: row.evento.titulo }));
+  const [selectedValue, setSelectedId] = useState("");
+  const selectedId = pending.some((event) => event.id === selectedValue) ? selectedValue : pending[0]?.id ?? "";
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [score, setScore] = useState(0);
   const [comment, setComment] = useState("");
 
@@ -33,28 +38,23 @@ export function RatingSection() {
   const question = eventQuestions[selectedId] ?? defaultQuestion;
   const canSubmit = Boolean(selected) && score > 0;
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!selected || !canSubmit) return;
 
-    setSent((previous) => [
-      {
-        id: selected.id,
-        eventTitle: selected.title,
-        comment: comment.trim() || "Sin comentarios.",
-        score,
-      },
-      ...previous,
-    ]);
-
-    const remaining = pending.filter((event) => event.id !== selected.id);
-    setPending(remaining);
-    setSelectedId(remaining[0]?.id ?? "");
+    setSubmitting(true); setError("");
+    try {
+    await api(`/eventos/${selected.id}/calificaciones`, { method: "POST", body: JSON.stringify({ score, comentario: comment.trim() }) });
+    ratings.reload();
     setScore(0);
     setComment("");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo guardar la valoración."); }
+    finally { setSubmitting(false); }
   }
 
   return (
     <div>
+      <ResourceStatus {...inscriptions} /><ResourceStatus {...ratings} />
+      {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
       {/* Selector de evento a calificar */}
       <div className="relative mt-8">
         <label htmlFor="rating-event" className="sr-only">
@@ -109,6 +109,7 @@ export function RatingSection() {
           <textarea
             id="rating-comment"
             rows={5}
+            maxLength={1000}
             value={comment}
             onChange={(event) => setComment(event.target.value)}
             disabled={!selected}
@@ -119,7 +120,7 @@ export function RatingSection() {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!canSubmit}
+            disabled={!canSubmit || submitting || ratings.loading}
             className={cn(
               "mt-5 h-11 w-full rounded-lg text-sm font-medium text-white outline-none transition-colors",
               "focus-visible:ring-2 focus-visible:ring-scesi-red-normal focus-visible:ring-offset-2",

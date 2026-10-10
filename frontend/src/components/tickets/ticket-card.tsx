@@ -22,7 +22,7 @@ export function TicketCard({ ticket }: { ticket: TicketRecord }) {
       <div className="flex flex-1 flex-col gap-3 p-6">
         <div>
           <Badge variant={ticket.status === "cancelled" ? "neutral" : "red"}>
-            {ticketStatusLabels[ticket.status]}
+            {ticket.paymentPending ? "Pago pendiente" : ticket.status === "past" && ticket.attended === false ? "Finalizado · sin asistencia" : ticketStatusLabels[ticket.status]}
           </Badge>
         </div>
 

@@ -1,11 +1,11 @@
 import { ArrowRight, Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { recommendedEvents } from "@/config/dashboard";
+import type { EventRecord } from "@/config/events";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export function RecommendedEvents() {
+export function RecommendedEvents({ recommendedEvents }: { recommendedEvents: EventRecord[] }) {
   return (
     <section
       aria-labelledby="recommended-title"

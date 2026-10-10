@@ -1,6 +1,7 @@
-import { activityStats } from "@/config/dashboard";
+import { Calendar, Check, Award } from "lucide-react";
 
-export function ActivityStats() {
+export function ActivityStats({ registered, attended, certificates }: { registered: number; attended: number; certificates: number }) {
+  const activityStats = [{ id: "registered", label: "Inscripciones", value: registered, icon: Calendar }, { id: "attended", label: "Eventos asistidos", value: attended, icon: Check }, { id: "certificates", label: "Certificados", value: certificates, icon: Award }];
   return (
     <section
       aria-labelledby="activity-title"
