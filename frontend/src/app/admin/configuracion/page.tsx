@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { AdminSettingsView } from "@/components/admin/settings-view";
 
 export const metadata: Metadata = {
   title: "Configuración",
-  description: "Ajusta la configuración general de la plataforma.",
+  description: "Configura la información institucional y las preferencias del sistema.",
 };
 
 export default function AdminSettingsPage() {
   return (
-    <DashboardSection
-      title="Configuración"
-      description="Ajusta la configuración general de la plataforma."
-      emptyMessage="La configuración estará disponible próximamente."
-      backHref="/admin"
-      backLabel="Volver a Resumen"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8 lg:px-10">
+      <AdminSettingsView />
+    </div>
   );
 }
