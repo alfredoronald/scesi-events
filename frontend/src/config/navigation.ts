@@ -68,7 +68,6 @@ export const staffNav: NavItem[] = [
 
 /** Menú de la vista Administrador. */
 export const adminNav: NavItem[] = [
-  { label: "Resumen", href: "/admin", icon: BarChart3, exact: true },
   { label: "Todos los eventos", href: "/admin/eventos", icon: Calendar },
   { label: "Usuarios y roles", href: "/admin/usuarios", icon: Users },
   { label: "Reportes", href: "/admin/reportes", icon: BarChart3 },
