@@ -3,13 +3,16 @@
 import { useMemo, useState } from "react";
 import { Plus, Search, SearchX } from "lucide-react";
 import {
-  organizerEvents,
   statusLabels,
   type OrganizerEventStatus,
 } from "@/config/organizer-events";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { useResource, ResourceStatus } from "@/components/auth/use-resource";
+import { formatDate, type ApiEvent } from "@/lib/backend-types";
+import type { OrganizerEvent } from "@/config/organizer-events";
+import { EventStatusControl } from "@/components/events/event-status-control";
 
 type Filter = "all" | OrganizerEventStatus;
 
@@ -37,6 +40,8 @@ function normalize(value: string): string {
 
 /** Vista "Mis eventos": pestañas por estado, buscador y tabla de eventos. */
 export function EventsView() {
+  const resource = useResource<ApiEvent[]>("/eventos?mios=true", [], true);
+  const organizerEvents: OrganizerEvent[] = useMemo(() => resource.data.map((event) => ({ id: event.id, title: event.titulo, date: formatDate(event.fechaInicio), enrolled: event.inscritosConfirmados, capacity: event.cupoMaximo ?? 0, modality: event.modalidad === "mixto" ? "Híbrido" : event.modalidad === "virtual" ? "Virtual" : "Presencial", status: event.estado === "borrador" ? "draft" : event.estado === "cerrado" ? "finished" : "published" })), [resource.data]);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
@@ -48,7 +53,7 @@ export function EventsView() {
     };
     for (const event of organizerEvents) totals[event.status] += 1;
     return totals;
-  }, []);
+  }, [organizerEvents]);
 
   const filtered = useMemo(() => {
     const term = normalize(query.trim());
@@ -57,10 +62,11 @@ export function EventsView() {
       const matchesQuery = !term || normalize(event.title).includes(term);
       return matchesFilter && matchesQuery;
     });
-  }, [filter, query]);
+  }, [filter, query, organizerEvents]);
 
   return (
     <div>
+      <ResourceStatus {...resource} />
       {/* Cabecera */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -163,6 +169,7 @@ export function EventsView() {
                     <Badge variant={statusVariants[event.status]}>
                       {statusLabels[event.status]}
                     </Badge>
+                    <EventStatusControl event={resource.data.find((row) => row.id === event.id)!} onSaved={resource.reload} />
                   </td>
                 </tr>
               ))}

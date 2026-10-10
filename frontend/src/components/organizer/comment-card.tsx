@@ -3,24 +3,31 @@
 import { useState, type FormEvent } from "react";
 import { Star } from "lucide-react";
 import type { OrganizerComment } from "@/config/organizer-comments";
+import { api } from "@/lib/api";
 
-export function CommentCard({ comment }: { comment: OrganizerComment }) {
+export function CommentCard({ comment, initialReply = "" }: { comment: OrganizerComment; initialReply?: string }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-  const [reply, setReply] = useState("");
+  const [reply, setReply] = useState(initialReply);
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = draft.trim();
     if (!text) {
       setError("Escribe una respuesta antes de enviarla.");
       return;
     }
+    setPending(true);
+    try {
+    await api(`/calificaciones/${comment.id}/respuesta`, { method: "PUT", body: JSON.stringify({ respuesta: text }) });
     setReply(text);
     setEditing(false);
     setDraft("");
     setError("");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo guardar la respuesta."); }
+    finally { setPending(false); }
   }
 
   return (
@@ -58,11 +65,12 @@ export function CommentCard({ comment }: { comment: OrganizerComment }) {
             aria-invalid={Boolean(error)}
             aria-describedby={error ? `error-${comment.id}` : undefined}
             rows={3}
+            maxLength={2000}
             className="mt-2 block w-full resize-y rounded-lg border border-scesi-grey-light-active bg-white p-3 text-sm text-scesi-grey-normal outline-none focus:border-scesi-red-normal focus:ring-2 focus:ring-scesi-red-normal/30"
           />
           {error && <p id={`error-${comment.id}`} role="alert" className="mt-2 text-sm text-scesi-red-normal">{error}</p>}
           <div className="mt-3 flex flex-wrap gap-3">
-            <button type="submit" className="rounded-lg bg-scesi-red-normal px-4 py-2 text-sm font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-normal">Enviar respuesta</button>
+            <button type="submit" disabled={pending} className="rounded-lg bg-scesi-red-normal px-4 py-2 text-sm font-medium text-white hover:bg-scesi-red-normal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scesi-red-normal">{pending ? "Guardando…" : "Enviar respuesta"}</button>
             <button type="button" onClick={() => { setEditing(false); setDraft(""); setError(""); }} className="rounded-lg px-4 py-2 text-sm text-scesi-grey-normal focus-visible:outline-2 focus-visible:outline-scesi-red-normal">Cancelar</button>
           </div>
         </form>

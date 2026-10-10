@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, MapPin, Plus } from "lucide-react";
 import {
-  activitySchedule,
   type ActivityRecord,
 } from "@/config/organizer-activities";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { useAttendance } from "@/components/attendees/use-attendance";
+import { useResource, ResourceStatus } from "@/components/auth/use-resource";
+import { type ApiActivity } from "@/lib/backend-types";
 
 function toMinutes(time: string): number {
   const [hours, minutes] = time.split(":").map(Number);
@@ -37,13 +39,25 @@ function computeActiveId(
 
 /** Vista "Actividades": cronograma por día con la actividad vigente resaltada. */
 export function ActivitiesView() {
+  const { events, eventId, setEventId } = useAttendance();
+  const resource = useResource<ApiActivity[]>(eventId ? `/eventos/${eventId}/actividades` : null, []);
+  const grouped = new Map<string, ApiActivity[]>();
+  for (const activity of resource.data) {
+    const key = new Date(activity.horaInicio).toLocaleDateString("en-CA", { timeZone: "America/La_Paz" });
+    grouped.set(key, [...(grouped.get(key) ?? []), activity]);
+  }
+  const activitySchedule = Array.from(grouped.values()).map((activities) => {
+    const date = new Date(activities[0].horaInicio);
+    return { day: date.toLocaleDateString("es-BO", { day: "2-digit", timeZone: "America/La_Paz" }), month: date.toLocaleDateString("es-BO", { month: "short", timeZone: "America/La_Paz" }), weekday: date.toLocaleDateString("es-BO", { weekday: "long", timeZone: "America/La_Paz" }), dateKey: date.toLocaleDateString("en-CA", { timeZone: "America/La_Paz" }), activities: activities.map((activity) => ({ id: activity.id, time: new Date(activity.horaInicio).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/La_Paz" }), title: activity.titulo, location: activity.lugar ?? "", responsible: activity.ponente })) };
+  });
   const [nowMinutes, setNowMinutes] = useState<number | null>(null);
 
   // Se calcula tras el mount (evita hydration mismatch) y se refresca cada30 s.
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      setNowMinutes(now.getHours() * 60 + now.getMinutes());
+      const parts = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/La_Paz" }).format(now).split(":").map(Number);
+      setNowMinutes(parts[0] * 60 + parts[1]);
     };
     tick();
     const timer = setInterval(tick, 30_000);
@@ -52,6 +66,8 @@ export function ActivitiesView() {
 
   return (
     <div>
+      <ResourceStatus {...events} /><ResourceStatus {...resource} />
+      <label htmlFor="activities-event" className="sr-only">Evento</label><select id="activities-event" value={eventId} onChange={(event) => setEventId(event.target.value)} className="mb-5 w-full rounded-lg border p-3">{events.data.map((event) => <option key={event.id} value={event.id}>{event.titulo}</option>)}</select>
       {/* Cabecera */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
@@ -72,7 +88,7 @@ export function ActivitiesView() {
       <div className="mt-8 overflow-hidden rounded-xl border border-scesi-grey-light-active bg-white">
         {activitySchedule.map((day) => {
           const activeId =
-            nowMinutes === null
+             nowMinutes === null || day.dateKey !== new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" })
               ? null
               : computeActiveId(day.activities, nowMinutes);
 

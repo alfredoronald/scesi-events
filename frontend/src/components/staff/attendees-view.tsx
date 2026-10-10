@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { accessEvents } from "@/config/staff-access";
-import { getAttendanceState, staffAttendees, type AttendanceState } from "@/config/staff-attendees";
-import { useCheckIns } from "@/components/attendees/check-in-provider";
+import { getAttendanceState, type AttendanceState } from "@/config/staff-attendees";
+import { useAttendance } from "@/components/attendees/use-attendance";
+import { ResourceStatus } from "@/components/auth/use-resource";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 
@@ -21,12 +21,12 @@ function normalize(value: string) {
 }
 
 export function StaffAttendeesView() {
-  const [eventId, setEventId] = useState(accessEvents[0].id);
+  const { events, eventId, setEventId, resource, roster: rows, checkIns, checkOuts, lastRecords } = useAttendance();
+  const accessEvents = events.data.map((event) => ({ id: event.id, title: event.titulo }));
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
-  const { checkIns, checkOuts, lastRecords } = useCheckIns();
-  const roster = staffAttendees.filter((attendee) => attendee.eventId === eventId);
+  const roster = rows.map((row) => ({ id: row.id, name: row.nombreCompleto, code: row.codigo }));
   const counts: Record<Filter, number> = { all: roster.length, inside: 0, exited: 0, "not-entered": 0 };
   for (const attendee of roster) counts[getAttendanceState(checkIns[attendee.id], checkOuts[attendee.id])] += 1;
   const term = normalize(query.trim());
@@ -40,6 +40,7 @@ export function StaffAttendeesView() {
 
   return (
     <div>
+      <ResourceStatus {...events} /><ResourceStatus {...resource} />
       <h1 className="text-title text-scesi-grey-normal md:text-display">Asistentes</h1>
       <p className="mt-2 text-body text-scesi-grey-normal/65">Busca participantes y revisa su estado de ingreso.</p>
       <label htmlFor="staff-attendees-event" className="sr-only">Evento de los asistentes</label>
