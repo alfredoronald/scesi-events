@@ -93,7 +93,7 @@ export function StaffAccessControlView() {
             </div>
             {error && <p id="access-error" role="alert" className="mt-3 text-sm text-scesi-red-light-active">{error}</p>}
           </form>
-          <p id="access-demo-help" className="mt-3 text-xs text-scesi-grey-light-active/60">Demo: {eventId === "programming-day-2025" ? "SC-1001" : "SC-0311"}. Los movimientos se conservan durante esta sesión.</p>
+          <p id="access-demo-help" className="mt-3 text-xs text-scesi-grey-light-active/60">Demo: SC-0311. Los movimientos se conservan durante esta sesión.</p>
 
           {entry && (
             <div className="mt-5 rounded-lg border border-scesi-grey-light-active/30 p-4">
