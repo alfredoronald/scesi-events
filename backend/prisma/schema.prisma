@@ -1,0 +1,409 @@
+// Schema de la plataforma SCESI — punto de partida PRD §6 ajustado a la Fase 0
+// (ver backend/docs/ANALISIS_FRONTEND.md y DECISIONES.md).
+// Columnas/roles reservados para la fase 2 (rol `member`) se comentan aquí.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum RolUsuario {
+  ADMIN
+  ORGANIZADOR
+  STAFF
+  PARTICIPANTE
+  // Fase 2: MEMBER (perfil público de socio + autopublicación)
+}
+
+enum TipoEvento {
+  CHARLA
+  TALLER
+  HACKATHON
+  CONGRESO
+  CTF
+}
+
+enum ModalidadEvento {
+  PRESENCIAL
+  VIRTUAL
+  MIXTO
+}
+
+enum EstadoEvento {
+  BORRADOR
+  PUBLICADO
+  EN_CURSO
+  CERRADO
+}
+
+/// Cómo participa SCESI en el evento (landing/admin: "Organizado por SCESI",
+/// "Comunidad invitada", "Staff"). Descubierto en Fase 0.
+enum ParticipacionScesi {
+  ORGANIZED
+  INVITED
+  STAFF
+}
+
+enum CertificadoA {
+  TODOS
+  SOLO_PONENTES
+}
+
+enum EstadoPago {
+  NO_APLICA
+  PENDIENTE
+  CONFIRMADO
+  RECHAZADO
+}
+
+enum RolParticipacion {
+  ASISTENTE
+  PONENTE
+  COMPETIDOR
+}
+
+enum TipoPublicacion {
+  BLOG
+  PAPER
+}
+
+enum EstadoPublicacion {
+  BORRADOR
+  PUBLICADO
+}
+
+// ─── Usuarios / auth ─────────────────────────────────────────────────────────
+
+model Usuario {
+  id             String    @id @default(uuid()) @db.Uuid
+  nombreCompleto String    @map("nombre_completo")
+  username       String    @unique @db.VarChar(60)
+  email          String    @unique @db.VarChar(255)
+  passwordHash   String    @map("password_hash")
+  celular        String?   @db.VarChar(30)
+  carrera        String?   @db.VarChar(120)
+  universidad    String?   @db.VarChar(160)
+  rol            RolUsuario @default(PARTICIPANTE)
+  activo         Boolean   @default(true)
+  ultimoAcceso   DateTime? @map("ultimo_acceso")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at") // borrado lógico
+
+  eventosOrganizados      Evento[]             @relation("EventoOrganizador")
+  eventosAsignado         EventoStaff[]
+  inscripciones           Inscripcion[]
+  asistenciasRegistradas  Asistencia[]         @relation("AsistenciaRegistradaPor")
+  proyectosCreados        Proyecto[]           @relation("ProyectoCreadoPor")
+  publicacionesAutor      Publicacion[]        @relation("PublicacionAutor")
+  publicacionesLikes      PublicacionLike[]
+  publicacionesComentarios PublicacionComentario[] @relation("ComentarioAutor")
+  colaboracionesProyecto  ProyectoColaborador[]
+  refreshTokens           RefreshToken[]
+
+  @@index([rol, activo])
+  @@map("usuarios")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  usuarioId String   @map("usuario_id") @db.Uuid
+  tokenHash String   @unique @map("token_hash") @db.VarChar(128)
+  expiraEn  DateTime @map("expira_en")
+  revocado  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("refresh_tokens")
+}
+
+// ─── Eventos ─────────────────────────────────────────────────────────────────
+
+model Evento {
+  id                 String           @id @default(uuid()) @db.Uuid
+  slug               String           @unique @db.VarChar(140)
+  titulo             String           @db.VarChar(160)
+  descripcion        String
+  tipo               TipoEvento
+  modalidad          ModalidadEvento
+  fechaInicio        DateTime         @map("fecha_inicio")
+  fechaFin           DateTime         @map("fecha_fin")
+  lugar              String           @db.VarChar(200)
+  enlaceVirtual      String?          @map("enlace_virtual") @db.VarChar(500)
+  imagenUrl          String?          @map("imagen_url") @db.VarChar(500)
+  esPago             Boolean          @default(false) @map("es_pago")
+  precio             Decimal?         @db.Decimal(10, 2)
+  cupoMaximo         Int?             @map("cupo_maximo")
+  estado             EstadoEvento     @default(BORRADOR)
+  organizadorId      String           @map("organizador_id") @db.Uuid
+  participacionScesi ParticipacionScesi @default(ORGANIZED) @map("participacion_scesi")
+  entregaCertificado Boolean          @default(false) @map("entrega_certificado")
+  certificadoA       CertificadoA     @default(TODOS) @map("certificado_a")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  deletedAt          DateTime?        @map("deleted_at") // borrado lógico
+
+  organizador  Usuario      @relation("EventoOrganizador", fields: [organizadorId], references: [id])
+  staff        EventoStaff[]
+  actividades  Actividad[]
+  inscripciones Inscripcion[]
+
+  @@index([estado, fechaInicio])
+  @@index([organizadorId])
+  @@map("eventos")
+}
+
+model EventoStaff {
+  eventoId  String  @map("evento_id") @db.Uuid
+  usuarioId String  @map("usuario_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  evento    Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([eventoId, usuarioId])
+  @@index([usuarioId])
+  @@map("evento_staff")
+}
+
+model Actividad {
+  id          String   @id @default(uuid()) @db.Uuid
+  eventoId    String   @map("evento_id") @db.Uuid
+  titulo      String   @db.VarChar(160)
+  descripcion String
+  ponente     String   @db.VarChar(160)
+  lugar       String?  @db.VarChar(200)
+  horaInicio  DateTime @map("hora_inicio")
+  horaFin     DateTime @map("hora_fin")
+  tipo        String   @db.VarChar(60)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  evento      Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  participaciones      Participacion[]
+  calificacionesActividad CalificacionActividad[]
+
+  @@index([eventoId, horaInicio])
+  @@map("actividades")
+}
+
+// ─── Inscripciones / asistencia ───────────────────────────────────────────────
+
+model Inscripcion {
+  id                   String     @id @default(uuid()) @db.Uuid
+  eventoId             String     @map("evento_id") @db.Uuid
+  usuarioId            String?    @map("usuario_id") @db.Uuid
+  nombreCompleto       String     @map("nombre_completo") @db.VarChar(160)
+  email                String     @db.VarChar(255)
+  celular              String     @db.VarChar(30)
+  carrera              String?    @db.VarChar(120)
+  universidad          String?    @db.VarChar(160)
+  consentimientoDatos  Boolean    @map("consentimiento_datos")
+  aceptaComunicaciones Boolean    @default(false) @map("acepta_comunicaciones")
+  estadoPago           EstadoPago @default(NO_APLICA) @map("estado_pago")
+  comprobanteUrl       String?    @map("comprobante_url") @db.VarChar(500)
+  /// Código legible que muestra el frontend: SC-0284 (Fase 0).
+  codigo               String     @unique @db.VarChar(20)
+  /// Token opaco del QR (≥128 bits). Se emite al confirmar el pago/inscripción.
+  qrToken              String?    @unique @map("qr_token") @db.VarChar(64)
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+
+  evento         Evento                  @relation(fields: [eventoId], references: [id])
+  usuario        Usuario?                @relation(fields: [usuarioId], references: [id])
+  asistencia     Asistencia?
+  participaciones Participacion[]
+  calificacionEvento CalificacionEvento?
+  calificacionesActividad CalificacionActividad[]
+  certificado    Certificado?
+
+  @@unique([eventoId, email])
+  @@index([eventoId])
+  @@index([email])
+  @@index([qrToken])
+  @@index([usuarioId])
+  @@map("inscripciones")
+}
+
+model Asistencia {
+  id              String   @id @default(uuid()) @db.Uuid
+  inscripcionId   String   @unique @map("inscripcion_id") @db.Uuid
+  horaCheckin     DateTime @default(now()) @map("hora_checkin")
+  registradoPorId String   @map("registrado_por_id") @db.Uuid
+  inscripcion     Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+  registradoPor   Usuario  @relation("AsistenciaRegistradaPor", fields: [registradoPorId], references: [id])
+
+  @@index([horaCheckin])
+  @@index([registradoPorId])
+  @@map("asistencias")
+}
+
+model Participacion {
+  id           String           @id @default(uuid()) @db.Uuid
+  actividadId  String           @map("actividad_id") @db.Uuid
+  inscripcionId String          @map("inscripcion_id") @db.Uuid
+  rol          RolParticipacion @default(ASISTENTE)
+  createdAt    DateTime         @default(now()) @map("created_at")
+  actividad    Actividad        @relation(fields: [actividadId], references: [id], onDelete: Cascade)
+  inscripcion  Inscripcion      @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+
+  @@unique([actividadId, inscripcionId])
+  @@index([inscripcionId])
+  @@map("participaciones")
+}
+
+// ─── Feedback ────────────────────────────────────────────────────────────────
+
+model CalificacionEvento {
+  id           String   @id @default(uuid()) @db.Uuid
+  inscripcionId String  @unique @map("inscripcion_id") @db.Uuid
+  organizacion Int      // 1–5
+  contenido    Int      // 1–5
+  general      Int      // 1–5
+  nps          Int?     // 0–10 (opcional: el front simplificado no lo envía)
+  comentario   String?  @db.VarChar(1000)
+  createdAt    DateTime @default(now()) @map("created_at")
+  inscripcion  Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+
+  @@map("calificaciones_evento")
+}
+
+model CalificacionActividad {
+  id            String   @id @default(uuid()) @db.Uuid
+  actividadId   String   @map("actividad_id") @db.Uuid
+  inscripcionId String   @map("inscripcion_id") @db.Uuid
+  puntaje       Int      // 1–5
+  comentario    String?  @db.VarChar(1000)
+  createdAt     DateTime @default(now()) @map("created_at")
+  actividad     Actividad   @relation(fields: [actividadId], references: [id], onDelete: Cascade)
+  inscripcion   Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+
+  @@unique([actividadId, inscripcionId])
+  @@map("calificaciones_actividad")
+}
+
+// ─── Certificados ────────────────────────────────────────────────────────────
+
+model Certificado {
+  id                 String   @id @default(uuid()) @db.Uuid
+  inscripcionId      String   @unique @map("inscripcion_id") @db.Uuid
+  codigoVerificacion String   @unique @map("codigo_verificacion") @db.VarChar(32)
+  emitidoEn          DateTime @default(now()) @map("emitido_en")
+  pdfUrl             String?  @map("pdf_url") @db.VarChar(500)
+  inscripcion        Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+
+  @@index([codigoVerificacion])
+  @@map("certificados")
+}
+
+// ─── Proyectos ───────────────────────────────────────────────────────────────
+
+model Proyecto {
+  id          String   @id @default(uuid()) @db.Uuid
+  titulo      String   @db.VarChar(160)
+  descripcion String
+  imagenUrl   String?  @map("imagen_url") @db.VarChar(500)
+  githubUrl   String?  @map("github_url") @db.VarChar(500)
+  categoria   String?  @db.VarChar(80) // landing muestra "Proyecto activo"…
+  publicado   Boolean  @default(false)
+  creadoPorId String   @map("creado_por") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  creadoPor   Usuario  @relation("ProyectoCreadoPor", fields: [creadoPorId], references: [id])
+  colaboradores ProyectoColaborador[]
+
+  @@index([publicado, createdAt])
+  @@map("proyectos")
+}
+
+model ProyectoColaborador {
+  id        String   @id @default(uuid()) @db.Uuid
+  proyectoId String  @map("proyecto_id") @db.Uuid
+  nombre    String   @db.VarChar(160)
+  usuarioId String?  @map("usuario_id") @db.Uuid
+  proyecto  Proyecto @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([proyectoId])
+  @@map("proyecto_colaboradores")
+}
+
+// ─── Publicaciones (blog / papers) ───────────────────────────────────────────
+
+model Publicacion {
+  id           String            @id @default(uuid()) @db.Uuid
+  tipo         TipoPublicacion
+  titulo       String            @db.VarChar(200)
+  slug         String            @unique @db.VarChar(220)
+  resumen      String            @db.VarChar(500)
+  contenido    String?           @db.Text
+  pdfUrl       String?           @map("pdf_url") @db.VarChar(500)
+  autorId      String            @map("autor_id") @db.Uuid
+  autoresTexto String?           @map("autores_texto") @db.VarChar(500)
+  doi          String?           @db.VarChar(120)
+  estado       EstadoPublicacion @default(BORRADOR)
+  publicadoEn  DateTime?         @map("publicado_en")
+  vistas       Int               @default(0)
+  descargas    Int               @default(0)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+  autor        Usuario           @relation("PublicacionAutor", fields: [autorId], references: [id])
+  categorias   PublicacionCategoria[]
+  likes        PublicacionLike[]
+  comentarios  PublicacionComentario[]
+
+  @@index([estado, tipo, publicadoEn])
+  @@map("publicaciones")
+}
+
+model Categoria {
+  id        String   @id @default(uuid()) @db.Uuid
+  nombre    String   @unique @db.VarChar(80)
+  createdAt DateTime @default(now()) @map("created_at")
+  publicaciones PublicacionCategoria[]
+
+  @@map("categorias")
+}
+
+model PublicacionCategoria {
+  publicacionId String @map("publicacion_id") @db.Uuid
+  categoriaId   String @map("categoria_id") @db.Uuid
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  categoria     Categoria   @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@id([publicacionId, categoriaId])
+  @@index([categoriaId])
+  @@map("publicacion_categorias")
+}
+
+model PublicacionLike {
+  publicacionId String    @map("publicacion_id") @db.Uuid
+  usuarioId     String    @map("usuario_id") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at")
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  usuario       Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([publicacionId, usuarioId])
+  @@index([usuarioId])
+  @@map("publicacion_likes")
+}
+
+model PublicacionComentario {
+  id            String   @id @default(uuid()) @db.Uuid
+  publicacionId String   @map("publicacion_id") @db.Uuid
+  usuarioId     String   @map("usuario_id") @db.Uuid
+  texto         String   @db.VarChar(2000)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  usuario       Usuario    @relation("ComentarioAutor", fields: [usuarioId], references: [id])
+
+  @@index([publicacionId, createdAt])
+  @@map("publicacion_comentarios")
+}
