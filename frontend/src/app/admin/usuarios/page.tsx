@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { AdminUsersView } from "@/components/admin/users-view";
 
 export const metadata: Metadata = {
   title: "Usuarios y roles",
-  description: "Administra los usuarios y sus roles en la plataforma.",
+  description: "Administra permisos y equipos dentro de la plataforma.",
 };
 
 export default function AdminUsersPage() {
   return (
-    <DashboardSection
-      title="Usuarios y roles"
-      description="Administra los usuarios y sus roles en la plataforma."
-      emptyMessage="La gestión de usuarios estará disponible próximamente."
-      backHref="/admin"
-      backLabel="Volver a Resumen"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8 lg:px-10">
+      <AdminUsersView />
+    </div>
   );
 }
