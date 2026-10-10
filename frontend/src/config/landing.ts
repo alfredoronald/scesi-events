@@ -43,11 +43,8 @@ export type Project = {
   id: string;
   title: string;
   description: string;
-  date: string;
-  location: string;
-  category: string;
-  image: string;
-  href: string;
+  /** Texto de estado visible en la lista, ej. "En desarrollo", "Activo". */
+  status: string;
 };
 
 // ── Próximos eventos ──────────────────────────────────────────────────────────
@@ -121,36 +118,15 @@ export const pastEvents: LandingEvent[] = [
 // ── Proyectos SCESI ───────────────────────────────────────────────────────────
 export const projects: Project[] = [
   {
-    id: "proyecto-feria-libro",
-    title: "Feria Internacional del Libro",
-    description:
-      "Stand interactivo de SCESI en la Feria del Libro con demos de proyectos estudiantiles, charlas y distribución de materiales de programación.",
-    date: "05 – 15 SEP",
-    location: "FECO, Cochabamba",
-    category: "Proyecto activo",
-    image: "/projects/proyecto-feria-libro.jpg",
-    href: "#",
+    id: "postulatte",
+    title: "Postulatte",
+    description: "Plataforma de gestión de postulaciones a la sociedad",
+    status: "En desarrollo",
   },
   {
-    id: "proyecto-scesi-noel",
-    title: "Scesi Noel",
-    description:
-      "Organización del festejo navideño anual de la comunidad. Actividades, decoración, intercambio y cierre de fin de año con todos los miembros.",
-    date: "20 DIC",
-    location: "FCyT — UMSS",
-    category: "Proyecto activo",
-    image: "/projects/proyecto-scesi-noel.jpg",
-    href: "#",
-  },
-  {
-    id: "proyecto-semana-tec",
-    title: "Semana Tecnológica",
-    description:
-      "Organización integral de la semana tecnológica: coordinación de speakers, patrocinadores, logística de salas y transmisión en vivo.",
-    date: "15 – 19 NOV",
-    location: "Auditorio FCyT",
-    category: "Proyecto activo",
-    image: "/projects/proyecto-semana-tec.jpg",
-    href: "#",
+    id: "scesiapp",
+    title: "ScesiApp",
+    description: "—",
+    status: "En desarrollo",
   },
 ];
