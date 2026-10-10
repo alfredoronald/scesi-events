@@ -1,5 +1,6 @@
-import { attendees, type AttendeeStatus } from "./attendees";
+import type { AttendeeStatus } from "./attendees";
 import { staffSchedules } from "./staff-schedule";
+import { staffAttendees } from "./staff-attendees";
 
 export type AccessEntry = {
   id: string;
@@ -11,14 +12,10 @@ export type AccessEntry = {
 
 export const accessEvents = staffSchedules.map(({ eventId, title }) => ({ id: eventId, title }));
 
-/** Entradas demo de Programming Day; Hackathon usa el roster compartido. */
-export const accessEntries: AccessEntry[] = [
-  { id: "pd-andrea", name: "Andrea Mendoza", code: "SC-1001", eventId: "programming-day-2025", status: "confirmed" },
-  { id: "pd-diego", name: "Diego Salazar", code: "SC-1002", eventId: "programming-day-2025", status: "confirmed" },
-  { id: "pd-luis", name: "Luis Torrico", code: "SC-1003", eventId: "programming-day-2025", status: "pending" },
-  { id: "pd-maria", name: "María Rojas", code: "SC-1004", eventId: "programming-day-2025", status: "waitlist" },
-  ...attendees.map(({ id, name, code, eventId, status }) => ({ id, name, code, eventId, status })),
-];
+/** Validación y tabla comparten una única fuente de entradas por evento. */
+export const accessEntries: AccessEntry[] = staffAttendees.map(
+  ({ id, name, code, eventId, status }) => ({ id, name, code, eventId, status }),
+);
 
 type AccessValidation = { ok: true; entry: AccessEntry } | { ok: false; message: string };
 
