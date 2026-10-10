@@ -54,8 +54,16 @@ export function CheckInProvider({ children }: { children: ReactNode }) {
     () => ({
       checkIns,
       checkOuts,
-      checkIn: (attendeeId, time) =>
-        setCheckIns((previous) => ({ ...previous, [attendeeId]: time })),
+      checkIn: (attendeeId, time) => {
+        setCheckIns((previous) => ({ ...previous, [attendeeId]: time }));
+        // Un reingreso inicia una nueva presencia y elimina la salida anterior.
+        setCheckOuts((previous) => {
+          if (!previous[attendeeId]) return previous;
+          const next = { ...previous };
+          delete next[attendeeId];
+          return next;
+        });
+      },
       checkOut: (attendeeId, time) =>
         setCheckOuts((previous) => ({ ...previous, [attendeeId]: time })),
     }),
