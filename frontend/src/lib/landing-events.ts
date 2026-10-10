@@ -65,7 +65,7 @@ function resolveImage(event: PublicEvent, fallbacks: LandingEvent[]): string {
   const match = fallbacks.find(
     (candidate) => normalize(candidate.title) === normalize(event.title),
   );
-  return match?.image ?? fallbacks[0]?.image ?? "/landing/hero-mascot.png";
+  return match?.image ?? fallbacks[0]?.image ?? "/landing/hero-slide-1.jpg";
 }
 
 function fromApi(
