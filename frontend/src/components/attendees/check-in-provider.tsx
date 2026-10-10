@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { attendees } from "@/config/attendees";
+import { staffAttendees } from "@/config/staff-attendees";
 
 type CheckInMap = Record<string, string>;
 
@@ -16,28 +16,35 @@ type CheckInContextValue = {
   checkIns: CheckInMap;
   /** attendeeId → hora de salida ("HH:MM"). */
   checkOuts: CheckInMap;
-  checkIn: (attendeeId: string, time: string) => void;
-  checkOut: (attendeeId: string, time: string) => void;
+  /** attendeeId → punto del último movimiento. */
+  lastRecords: Record<string, string>;
+  checkIn: (attendeeId: string, time: string, checkpoint?: string) => void;
+  checkOut: (attendeeId: string, time: string, checkpoint?: string) => void;
 };
 
 /** Semilla desde el mock: solo los asistentes con checkedInAt. */
 const seedCheckIns: CheckInMap = Object.fromEntries(
-  attendees.flatMap((attendee) =>
+  staffAttendees.flatMap((attendee) =>
     attendee.checkedInAt ? [[attendee.id, attendee.checkedInAt] as const] : [],
   ),
 );
 
 /** Semilla desde el mock: solo los asistentes con checkedOutAt. */
 const seedCheckOuts: CheckInMap = Object.fromEntries(
-  attendees.flatMap((attendee) =>
+  staffAttendees.flatMap((attendee) =>
     attendee.checkedOutAt ? [[attendee.id, attendee.checkedOutAt] as const] : [],
   ),
+);
+
+const seedLastRecords = Object.fromEntries(
+  staffAttendees.map((attendee) => [attendee.id, attendee.lastRecord]),
 );
 
 /** Valor por defecto: la vista funciona aunque no haya provider (sin mutación). */
 const CheckInContext = createContext<CheckInContextValue>({
   checkIns: seedCheckIns,
   checkOuts: seedCheckOuts,
+  lastRecords: seedLastRecords,
   checkIn: () => {},
   checkOut: () => {},
 });
@@ -49,13 +56,16 @@ const CheckInContext = createContext<CheckInContextValue>({
 export function CheckInProvider({ children }: { children: ReactNode }) {
   const [checkIns, setCheckIns] = useState<CheckInMap>(seedCheckIns);
   const [checkOuts, setCheckOuts] = useState<CheckInMap>(seedCheckOuts);
+  const [lastRecords, setLastRecords] = useState<Record<string, string>>(seedLastRecords);
 
   const value = useMemo<CheckInContextValue>(
     () => ({
       checkIns,
       checkOuts,
-      checkIn: (attendeeId, time) => {
+      lastRecords,
+      checkIn: (attendeeId, time, checkpoint = "Ingreso principal") => {
         setCheckIns((previous) => ({ ...previous, [attendeeId]: time }));
+        setLastRecords((previous) => ({ ...previous, [attendeeId]: checkpoint }));
         // Un reingreso inicia una nueva presencia y elimina la salida anterior.
         setCheckOuts((previous) => {
           if (!previous[attendeeId]) return previous;
@@ -64,10 +74,12 @@ export function CheckInProvider({ children }: { children: ReactNode }) {
           return next;
         });
       },
-      checkOut: (attendeeId, time) =>
-        setCheckOuts((previous) => ({ ...previous, [attendeeId]: time })),
+      checkOut: (attendeeId, time, checkpoint = "Salida principal") => {
+        setCheckOuts((previous) => ({ ...previous, [attendeeId]: time }));
+        setLastRecords((previous) => ({ ...previous, [attendeeId]: checkpoint }));
+      },
     }),
-    [checkIns, checkOuts],
+    [checkIns, checkOuts, lastRecords],
   );
 
   return (
