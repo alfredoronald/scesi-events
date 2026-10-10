@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Administrador",
@@ -7,11 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
-  return (
-    <DashboardSection
-      title="Vista Administrador"
-      description="Aquí podrás gestionar usuarios, roles y la configuración general."
-      emptyMessage="La vista de administrador estará disponible próximamente."
-    />
-  );
+  redirect("/admin/eventos");
 }
