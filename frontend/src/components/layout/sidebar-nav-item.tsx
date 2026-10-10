@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
@@ -11,12 +12,30 @@ type SidebarNavItemProps = {
   onNavigate?: () => void;
 };
 
-export function SidebarNavItem({ item, onNavigate }: SidebarNavItemProps) {
+export function SidebarNavItem(props: SidebarNavItemProps) {
+  // usePathname se suspende en shells de rutas con params dinámicos;
+  // el fallback muestra el ítem sin estado activo.
+  return (
+    <Suspense fallback={<NavItemLink {...props} isActive={false} />}>
+      <ActiveNavItem {...props} />
+    </Suspense>
+  );
+}
+
+function ActiveNavItem({ item, onNavigate }: SidebarNavItemProps) {
   const pathname = usePathname();
   const isActive = item.exact
     ? pathname === item.href
     : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
+  return <NavItemLink item={item} onNavigate={onNavigate} isActive={isActive} />;
+}
+
+function NavItemLink({
+  item,
+  onNavigate,
+  isActive,
+}: SidebarNavItemProps & { isActive: boolean }) {
   const Icon = item.icon;
 
   return (

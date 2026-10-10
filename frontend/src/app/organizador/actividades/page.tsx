@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { ActivitiesView } from "@/components/organizer/activities-view";
 
 export const metadata: Metadata = {
   title: "Actividades",
-  description: "Organiza el cronograma y las actividades de tus eventos.",
+  description: "Organiza charlas, talleres y responsables dentro del cronograma.",
 };
 
 export default function OrganizerActivitiesPage() {
   return (
-    <DashboardSection
-      title="Actividades"
-      description="Organiza el cronograma y las actividades de tus eventos."
-      emptyMessage="La gestión de actividades estará disponible próximamente."
-      backHref="/organizador"
-      backLabel="Volver a Mis eventos"
-    />
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <ActivitiesView />
+    </div>
   );
 }

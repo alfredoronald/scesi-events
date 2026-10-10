@@ -3,7 +3,7 @@ import { AttendeesView } from "@/components/attendees/attendees-view";
 
 export const metadata: Metadata = {
   title: "Asistentes",
-  description: "Consulta y gestiona los asistentes de tus eventos.",
+  description: "Consulta registros, confirma ingresos y exporta la lista del evento.",
 };
 
 export default function OrganizerAttendeesPage() {

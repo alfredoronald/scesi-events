@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
@@ -11,6 +11,18 @@ import { SidebarNavItem } from "./sidebar-nav-item";
 import { SidebarViewSwitcher } from "./sidebar-view-switcher";
 import { useSidebar } from "./sidebar-context";
 
+/** Cierra el drawer al cambiar de ruta; lee la ruta en la hoja más pequeña. */
+function PathnameCloser() {
+  const pathname = usePathname();
+  const { closeDrawer } = useSidebar();
+
+  useEffect(() => {
+    closeDrawer();
+  }, [pathname, closeDrawer]);
+
+  return null;
+}
+
 /** Drawer móvil del sidebar: overlay + panel deslizante (&lt; lg). */
 export function SidebarDrawer({
   items,
@@ -19,13 +31,7 @@ export function SidebarDrawer({
   sectionLabel,
 }: SidebarConfig) {
   const { open, closeDrawer } = useSidebar();
-  const pathname = usePathname();
   const drawerRef = useRef<HTMLDivElement>(null);
-
-  // Cierra al cambiar de ruta.
-  useEffect(() => {
-    closeDrawer();
-  }, [pathname, closeDrawer]);
 
   // Escape + bloqueo de scroll del body mientras está abierto.
   useEffect(() => {
@@ -72,6 +78,9 @@ export function SidebarDrawer({
 
   return (
     <>
+      <Suspense fallback={null}>
+        <PathnameCloser />
+      </Suspense>
       <div
         aria-hidden="true"
         onClick={closeDrawer}
